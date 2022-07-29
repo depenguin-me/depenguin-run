@@ -21,7 +21,7 @@ note: run.sh on the website is a symlink to the depenguinme.sh script
 
 ### Connect via SSH or VNC
 
-Open a VNC connection to your-host-ip:5901 or connect via SSH:
+Wait up to 5 minutes and open a VNC connection to your-host-ip:5901 or connect via SSH:
 
 ```
 ssh -p 1022 root@your-host-ip
