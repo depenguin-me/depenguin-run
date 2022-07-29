@@ -7,13 +7,17 @@ https://depenguin.me
 
 ### Run script to get mfsBSD install up
 
-Boot up your server into rescue mode, then run the following to launch a mfsBSD-based installer for FreeBSD-13.1 with root-on-ZFS.
+Boot your server into rescue mode, then run the following to launch a mfsBSD-based installer for FreeBSD-13.1 with root-on-ZFS.
 
 ```
 wget https://depenguin.me/run.sh && chmod +x run.sh && ./run.sh 
 ```
 
 Supporting files will be downloaded to /tmp and commands are run with sudo in some cases.
+
+```
+note: run.sh on the website is a symlink to the depenguinme.sh script
+```
 
 ### Connect via SSH or VNC
 
