@@ -4,6 +4,13 @@
 # v0.0.1  2022-07-28  bretton depenguin.me
 #  this is a proof of concept with parts to be further developed
 #
+
+# this script must be run as root
+if [ "$EUID" -ne 0 ]; then
+  echo "Please run this script as root. Recovery console should be root user"
+  exit
+fi
+
 # vars, do not adjust unless you know what you're doing for this script
 QEMUBASE="/tmp"
 USENVME=0
@@ -50,7 +57,7 @@ wget -qc "${MFSBSDISO}"
 wget -qc "${QEMUSTATICSRC}"
 
 if [ -f "${QEMUSTATICFILE}" ]; then
-    sudo tar -xzvf "${QEMUSTATICFILE}"
+    tar -xzvf "${QEMUSTATICFILE}"
 else
     echo "missing ${QEMUSTATICFILE}"
     exit
@@ -103,7 +110,7 @@ if [ "$USENVME" -eq 0 ]; then
     echo "In the BSD shell, run zfsinstall -h for further instructions to install FreeBSD-13.1"
     echo ""
 
-        sudo "${QEMUBIN}" \
+        "${QEMUBIN}" \
           -net nic \
           -net user,hostfwd=tcp::1022-:22 \
           -m 1024M \
@@ -138,7 +145,7 @@ if [ "$USENVME" -eq 0 ]; then
     echo "In the BSD shell, run zfsinstall -h for further instructions to install FreeBSD-13.1"
     echo ""
 
-        sudo "${QEMUBIN}" \
+        "${QEMUBIN}" \
           -net nic \
           -net user,hostfwd=tcp::1022-:22 \
           -m 1024M \
@@ -174,7 +181,7 @@ elif [ "$USENVME" -eq 1 ]; then
     echo "In the BSD shell, run zfsinstall -h for further instructions to install FreeBSD-13.1"
     echo ""
 
-        sudo "${QEMUBIN}" \
+        "${QEMUBIN}" \
           -net nic \
           -net user,hostfwd=tcp::1022-:22 \
           -m 1024M \
@@ -209,7 +216,7 @@ elif [ "$USENVME" -eq 1 ]; then
     echo "In the BSD shell, run zfsinstall -h for further instructions to install FreeBSD-13.1"
     echo ""
 
-        sudo "${QEMUBIN}" \
+        "${QEMUBIN}" \
           -net nic \
           -net user,hostfwd=tcp::1022-:22 \
           -m 1024M \
