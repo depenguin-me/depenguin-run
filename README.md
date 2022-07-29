@@ -17,7 +17,7 @@ Supporting files will be downloaded to /tmp and commands are run with sudo in so
 
 ### Connect via SSH or VNC
 
-Open a VNC connection to :5901 or connect via SSH:
+Open a VNC connection to your-host-ip:5901 or connect via SSH:
 
 ```
 ssh -p 1022 root@your-host-ip
