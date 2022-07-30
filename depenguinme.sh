@@ -16,7 +16,7 @@ QEMUBASE="/tmp"
 USENVME=0
 #not in use
 #MYPRIMARYIP=$(ip route get 1 | awk '{print $(NF-2);exit}')
-MYVNC="0.0.0.0:1"
+MYVNC="127.0.0.1:1"
 MYVGA="std"   # could be qxl but not enabled for the static-qemu binary
 MYBIOS="bios-256k.bin"
 MYKEYMAP="keymaps/en-us"
