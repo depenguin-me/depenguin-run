@@ -41,7 +41,7 @@ shift "$((OPTIND-1))"
 QEMUBASE="/tmp"
 USENVME=0
 #not in use
-#MYPRIMARYIP=$(ip route get 1 | awk '{print $(NF-2);exit}')
+MYPRIMARYIP=$(ip route get 1 | awk '{print $(NF-2);exit}')
 MYVNC="127.0.0.1:1"
 MYVGA="std"   # could be qxl but not enabled for the static-qemu binary
 MYBIOS="bios-256k.bin"
