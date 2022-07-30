@@ -26,6 +26,8 @@ ssh -p 1022 root@your-host-ip
 Password for root@mfsbsd: mfsroot 
 ```
 
+In case it's needed, the username is root and password mfsroot
+
 ### 3. Install FreeBSD-13.1
 The environment includes base.txz and kernel.txz needed for FreeBSD install.
 
