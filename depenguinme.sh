@@ -138,20 +138,11 @@ fi
 # start qemu-static with parameters
 if [ "$USENVME" -eq 0 ]; then
     if [ -n "$checkdiskone" ] && [ -n "$checkdisktwo" ]; then
-    echo ""
-    echo "NOTICE: using sda and sdb"
-    echo ""
-
-    cd "${QEMUBASE}"/share/qemu || exit
-
-    echo "Wait up to _5mins_ then choose from"
-    echo ""
-        echo "* Open VNC client and connect to this address: <your-server-ip>:5901 with user 'root' and password 'mfsroot'."
         echo ""
-        echo "* Open SSH client and connect to this address: ssh -p 1022 root@<your-server-ip> and enter password 'mfsroot' when prompted."
+        echo "NOTICE: using sda and sdb"
         echo ""
-    echo "In the BSD shell, run zfsinstall -h for further instructions to install FreeBSD-13.1"
-    echo ""
+
+        cd "${QEMUBASE}"/share/qemu || exit
 
         "${QEMUBIN}" \
           -net nic \
@@ -174,20 +165,11 @@ if [ "$USENVME" -eq 0 ]; then
           -D "${MYLOG}" \
           -daemonize
     elif [ -n "$checkdiskone" ] && [ -z "$checkdisktwo" ]; then
-    echo ""
-    echo "NOTICE: using sda only"
-    echo ""
-
-    cd "${QEMUBASE}"/share/qemu || exit
-
-    echo "Wait up to _5mins_ then choose from"
-    echo ""
-        echo "* Open VNC client and connect to this address: <your-server-ip>:5901 with user 'root' and password 'mfsroot'."
         echo ""
-        echo "* Open SSH client and connect to this address: ssh -p 1022 root@<your-server-ip> and enter password 'mfsroot' when prompted."
+        echo "NOTICE: using sda only"
         echo ""
-    echo "In the BSD shell, run zfsinstall -h for further instructions to install FreeBSD-13.1"
-    echo ""
+
+        cd "${QEMUBASE}"/share/qemu || exit
 
         "${QEMUBIN}" \
           -net nic \
@@ -208,23 +190,14 @@ if [ "$USENVME" -eq 0 ]; then
           -vnc "${MYVNC}" \
           -D "${MYLOG}" \
           -daemonize
-   fi
+    fi
 elif [ "$USENVME" -eq 1 ]; then
     if [ -n "$checknvmeone" ] && [ -n "$checknvmetwo" ]; then
-    echo ""
-    echo "NOTICE: using nvme1 and nvme2"
-    echo ""
-
-    cd "${QEMUBASE}"/share/qemu || exit
-
-    echo "Wait up to _5mins_ then choose from"
-    echo ""
-        echo "* Open VNC client and connect to this address: <your-server-ip>:5901 with user 'root' and password 'mfsroot'."
         echo ""
-        echo "* Open SSH client and connect to this address: ssh -p 1022 root@<your-server-ip> and enter password 'mfsroot' when prompted."
+        echo "NOTICE: using nvme1 and nvme2"
         echo ""
-    echo "In the BSD shell, run zfsinstall -h for further instructions to install FreeBSD-13.1"
-    echo ""
+
+        cd "${QEMUBASE}"/share/qemu || exit
 
         "${QEMUBIN}" \
           -net nic \
@@ -247,20 +220,11 @@ elif [ "$USENVME" -eq 1 ]; then
           -D "${MYLOG}" \
           -daemonize
     elif [ -n "$checknvmeone" ] && [ -z "$checknvmetwo" ]; then
-    echo ""
-    echo "NOTICE: using nvme1 only"
-    echo ""
-
-    cd "${QEMUBASE}"/share/qemu || exit
-
-    echo "Wait up to _5mins_ then choose from"
-    echo ""
-        echo "* Open VNC client and connect to this address: <your-server-ip>:5901 with user 'root' and password 'mfsroot'."
         echo ""
-        echo "* Open SSH client and connect to this address: ssh -p 1022 root@<your-server-ip> and enter password 'mfsroot' when prompted."
+        echo "NOTICE: using nvme1 only"
         echo ""
-    echo "In the BSD shell, run zfsinstall -h for further instructions to install FreeBSD-13.1"
-    echo ""
+
+        cd "${QEMUBASE}"/share/qemu || exit
 
         "${QEMUBIN}" \
           -net nic \
@@ -301,6 +265,7 @@ ssh-keyscan -p 1022 -4 -T 30 127.0.0.1 >> /root/.ssh/known_hosts
 curl --insecure --user root:"${MYPASSWORD}" -T "${QEMUBASE}"/COPYKEY.pub -k sftp://127.0.0.1:1022/root/.ssh/authorized_keys --ftp-create-dirs
 
 # we should be able to ssh without a password now
+echo ""
 echo "The system is ready to access from a host with the associated private key!"
 echo ""
 echo "Open SSH client and connect to this address: ssh -p 1022 root@${MYPRIMARYIP} and the login should be automatic and key-based. Password access is not yet disabled!"
