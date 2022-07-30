@@ -4,12 +4,38 @@
 # v0.0.1  2022-07-28  bretton depenguin.me
 #  this is a proof of concept with parts to be further developed
 #
+# v0.0.2  2022-07-30  bretton depenguin.me
+#  retrieve and insert ssh key
 
 # this script must be run as root
 if [ "$EUID" -ne 0 ]; then
   echo "Please run this script as root. Recovery console should be root user"
   exit
 fi
+
+usage() { echo "Usage: $0 [-k /path/to/authorized_keys] [-n http://host.domain/keys.pub]" 1>&2; exit 1; }
+
+while getopts ":k:n:" flags; do
+    case "${flags}" in
+        k)
+            AUTHKEYURL=""
+            AUTHKEYFILE="${OPTARG}"
+            ;;
+        n)
+            AUTHKEYURL="${OPTARG}"
+            AUTHKEYFILE=""
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+shift "$((OPTIND-1))"
+
+# this breaks script
+#if [ -z "${k}" ] || [ -z "${n}" ]; then
+#    usage
+#fi
 
 # vars, do not adjust unless you know what you're doing for this script
 QEMUBASE="/tmp"
@@ -21,6 +47,7 @@ MYVGA="std"   # could be qxl but not enabled for the static-qemu binary
 MYBIOS="bios-256k.bin"
 MYKEYMAP="keymaps/en-us"
 MYLOG="${QEMUBASE}/qemu-depenguin.log"
+MYPASSWORD="mfsroot"
 
 ###
 # Custom build mfsbsd file
@@ -49,6 +76,22 @@ QEMUBIN="${QEMUBASE}/qemu-system-x86_64"
 
 # change directory to /tmp to continue
 cd "${QEMUBASE}" || exit
+
+# setup or retrieve authorised keys
+if [ -z "${AUTHKEYURL}" ] && [ -z "${AUTHKEYFILE}" ]; then
+    echo "No keys selected, you should get the usage message instead of this error"
+    exit 1
+elif [ -z "${AUTHKEYURL}" ] && [ -n "${AUTHKEYFILE}" ]; then
+    # if no url, yet with file link, copy file to holding file
+    cp -f "${AUTHKEYFILE}" COPYKEY.pub
+elif [ -n "${AUTHKEYURL}" ] && [ -z "${AUTHKEYFILE}" ]; then
+    # if url, but no file link, retrieve from url, to holding file
+    wget -qc "${AUTHKEYURL}" -O COPYKEY.pub
+elif [ -n "${AUTHKEYURL}" ] && [ -n "${AUTHKEYFILE}" ]; then
+    # if url and file link, combine both and upload
+    wget "${AUTHKEYURL}" -O COPYKEY.pub
+    cat "${AUTHKEYFILE}" >> COPYKEY.pub
+fi
 
 # download mfsbsd
 wget -qc "${MFSBSDISO}"
@@ -128,7 +171,8 @@ if [ "$USENVME" -eq 0 ]; then
           -hdb /dev/sdb \
           -boot once=d \
           -vnc "${MYVNC}" \
-          -D "${MYLOG}"
+          -D "${MYLOG}" \
+          -daemonize
     elif [ -n "$checkdiskone" ] && [ -z "$checkdisktwo" ]; then
     echo ""
     echo "NOTICE: using sda only"
@@ -162,7 +206,8 @@ if [ "$USENVME" -eq 0 ]; then
           -hda /dev/sda \
           -boot once=d \
           -vnc "${MYVNC}" \
-          -D "${MYLOG}"
+          -D "${MYLOG}" \
+          -daemonize
    fi
 elif [ "$USENVME" -eq 1 ]; then
     if [ -n "$checknvmeone" ] && [ -n "$checknvmetwo" ]; then
@@ -199,7 +244,8 @@ elif [ "$USENVME" -eq 1 ]; then
           -hdb /dev/nvme1n1 \
           -boot once=d \
           -vnc "${MYVNC}" \
-          -D "${MYLOG}"
+          -D "${MYLOG}" \
+          -daemonize
     elif [ -n "$checknvmeone" ] && [ -z "$checknvmetwo" ]; then
     echo ""
     echo "NOTICE: using nvme1 only"
@@ -233,6 +279,25 @@ elif [ "$USENVME" -eq 1 ]; then
           -hda /dev/nvme0n1 \
           -boot once=d \
           -vnc "${MYVNC}" \
-          -D "${MYLOG}"
+          -D "${MYLOG}" \
+          -daemonize
    fi
 fi
+
+# let the system boot
+sleep 20
+# scan for keys
+ssh-keyscan -p 1022 -4 -T 30 127.0.0.1 >> /root/.ssh/known_hosts
+
+# copy over key using curl instead of ssh-copy-id
+# we do this because we can't pipe the password to ssh-copy-id and expect & sshpass aren't installed on rescue afaik
+
+curl --insecure --user root:"${MYPASSWORD}" -T "${QEMUBASE}"/COPYKEY.pub -k sftp://127.0.0.1:1022/root/.ssh/authorized_keys --ftp-create-dirs
+
+# we should be able to ssh without a password now
+echo "The system is ready to access from a host with the associated private key!"
+echo ""
+echo "Open SSH client and connect to this address: ssh -p 1022 root@${MYPRIMARYIP} and the login should be automatic and key-based. Password access is not yet disabled!"
+echo ""
+echo "Run 'zfsinstall -h' for install options, or provision with ansible scripts that cover installation."
+echo ""
