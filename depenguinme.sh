@@ -285,7 +285,13 @@ elif [ "$USENVME" -eq 1 ]; then
 fi
 
 # let the system boot
-sleep 20
+echo "Please wait for SSH..."
+sleep 10
+echo "Please wait for SSH..."
+sleep 10
+echo "Please wait for SSH..."
+sleep 10
+
 # scan for keys
 ssh-keyscan -p 1022 -4 -T 30 127.0.0.1 >> /root/.ssh/known_hosts
 
