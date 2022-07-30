@@ -6,7 +6,7 @@ https://depenguin.me
 ## Install FreeBSD-13.1 on your dedicated server from within a Linux rescue environment
 
 ### Run script to get mfsBSD install up
-Boot your server into rescue mode, then run the following to launch the custom mfsBSD-based installer for FreeBSD-13.1 with root-on-ZFS.
+Boot your server into rescue mode, then run the following to launch the custom [mfsBSD-based installer](https://github.com/depenguin-me/depenguin-installer) for FreeBSD-13.1 with root-on-ZFS.
 ```
 wget https://depenguin.me/run.sh && chmod +x run.sh && ./run.sh 
 ```
