@@ -9,6 +9,7 @@
 #
 # v0.0.3  2022-07-31  bretton depenguin.me
 #  use uefi.bin as bios to enable support of >2TB disks
+#  use hardened mfsbsd image and copy in imported keys
 
 # this script must be run as root
 if [ "$EUID" -ne 0 ]; then
@@ -22,10 +23,10 @@ while getopts ":k:n:" flags; do
     case "${flags}" in
         k)
             AUTHKEYURL=""
-            AUTHKEYFILE="${OPTARG}"
+            AUTHKEYFILE=${OPTARG}
             ;;
         n)
-            AUTHKEYURL="${OPTARG}"
+            AUTHKEYURL=${OPTARG}
             AUTHKEYFILE=""
             ;;
         *)
@@ -35,22 +36,28 @@ while getopts ":k:n:" flags; do
 done
 shift "$((OPTIND-1))"
 
-# this breaks script
 #if [ -z "${k}" ] || [ -z "${n}" ]; then
 #    usage
 #fi
 
+# install required packages
+apt-get update
+apt-get install -y mkisofs
+###
+# disabled for now as not sure about bios stuff, using statically-compiled qemu with copied-in uefi bios instead
+# apt-get install -y qemu
+###
+
 # vars, do not adjust unless you know what you're doing for this script
 QEMUBASE="/tmp"
 USENVME=0
-#not in use
 MYPRIMARYIP=$(ip route get 1 | awk '{print $(NF-2);exit}')
 MYVNC="127.0.0.1:1"
 MYVGA="std"   # could be qxl but not enabled for the static-qemu binary
 MYBIOS="uefi.bin"  # default is bios-256k.bin, uefi.bin is downloaded separately
 MYKEYMAP="keymaps/en-us"
 MYLOG="${QEMUBASE}/qemu-depenguin.log"
-MYPASSWORD="mfsroot"
+MYISOAUTH="myiso.iso"
 
 ###
 # Custom build mfsbsd file
@@ -106,13 +113,31 @@ elif [ -n "${AUTHKEYURL}" ] && [ -n "${AUTHKEYFILE}" ]; then
     cat "${AUTHKEYFILE}" >> COPYKEY.pub
 fi
 
+# temp solution to make iso with authorized_keys
+mkdir -p "${QEMUBASE}"/myiso
+if [ -f "${QEMUBASE}"/COPYKEY.pub ] && [ -d "${QEMUBASE}"/myiso ]; then
+    cp -f COPYKEY.pub "${QEMUBASE}"/myiso/mfsbsd_authorized_keys
+else
+    echo "Error copying COPYKEY.pub to myiso/mfsbsd_authorized_keys"
+    exit 1
+fi
+
+# create iso image with the public keys
+if [ -f "${QEMUBASE}"/myiso/mfsbsd_authorized_keys ]; then
+    /usr/bin/genisoimage -v -J -r -V MFSBSD_AUTHKEYS \
+      -o "${QEMUBASE}"/"${MYISOAUTH}" \
+      "${QEMUBASE}"/myiso/mfsbsd_authorized_keys
+else
+    echo "Missing myiso/mfsbsd_authorized_keys"
+    exit 1
+fi
+
 # download mfsbsd
 wget -qc "${MFSBSDISO}"
 
 # download qemu static
 wget -qc "${QEMUSTATICSRC}"
 
-# extract qemu-system-x86_64
 if [ -f "${QEMUSTATICFILE}" ]; then
     tar -xzvf "${QEMUSTATICFILE}"
 else
@@ -165,11 +190,11 @@ fi
 # start qemu-static with parameters
 if [ "$USENVME" -eq 0 ]; then
     if [ -n "$checkdiskone" ] && [ -n "$checkdisktwo" ]; then
-        echo ""
-        echo "NOTICE: using sda and sdb"
-        echo ""
+    echo ""
+    echo "NOTICE: using sda and sdb"
+    echo ""
 
-        cd "${QEMUBASE}"/share/qemu || exit
+    cd "${QEMUBASE}"/share/qemu || exit
 
         "${QEMUBIN}" \
           -net nic \
@@ -184,19 +209,20 @@ if [ "$USENVME" -eq 0 ]; then
           -vga "${MYVGA}" \
           -usbdevice tablet \
           -k "${MYKEYMAP}" \
-          -cdrom /tmp/"${MFSBSDFILE}" \
+          -cdrom "${QEMUBASE}/${MFSBSDFILE}" \
           -hda /dev/sda \
           -hdb /dev/sdb \
+          -drive file="${QEMUBASE}/${MYISOAUTH}",media=cdrom \
           -boot once=d \
           -vnc "${MYVNC}" \
-          -D "${MYLOG}" \
+          -D "${MYLOG}"\
           -daemonize
     elif [ -n "$checkdiskone" ] && [ -z "$checkdisktwo" ]; then
-        echo ""
-        echo "NOTICE: using sda only"
-        echo ""
+    echo ""
+    echo "NOTICE: using sda only"
+    echo ""
 
-        cd "${QEMUBASE}"/share/qemu || exit
+    cd "${QEMUBASE}"/share/qemu || exit
 
         "${QEMUBIN}" \
           -net nic \
@@ -211,20 +237,21 @@ if [ "$USENVME" -eq 0 ]; then
           -vga "${MYVGA}" \
           -usbdevice tablet \
           -k "${MYKEYMAP}" \
-          -cdrom /tmp/"${MFSBSDFILE}" \
+          -cdrom "${QEMUBASE}/${MFSBSDFILE}" \
           -hda /dev/sda \
+          -drive file="${QEMUBASE}/${MYISOAUTH}",media=cdrom \
           -boot once=d \
           -vnc "${MYVNC}" \
-          -D "${MYLOG}" \
+          -D "${MYLOG}"\
           -daemonize
-    fi
+   fi
 elif [ "$USENVME" -eq 1 ]; then
     if [ -n "$checknvmeone" ] && [ -n "$checknvmetwo" ]; then
-        echo ""
-        echo "NOTICE: using nvme1 and nvme2"
-        echo ""
+    echo ""
+    echo "NOTICE: using nvme1 and nvme2"
+    echo ""
 
-        cd "${QEMUBASE}"/share/qemu || exit
+    cd "${QEMUBASE}"/share/qemu || exit
 
         "${QEMUBIN}" \
           -net nic \
@@ -239,19 +266,20 @@ elif [ "$USENVME" -eq 1 ]; then
           -vga "${MYVGA}" \
           -usbdevice tablet \
           -k "${MYKEYMAP}" \
-          -cdrom /tmp/"${MFSBSDFILE}" \
+          -cdrom "${QEMUBASE}/${MFSBSDFILE}" \
           -hda /dev/nvme0n1 \
           -hdb /dev/nvme1n1 \
+          -drive file="${QEMUBASE}/${MYISOAUTH}",media=cdrom \
           -boot once=d \
           -vnc "${MYVNC}" \
           -D "${MYLOG}" \
           -daemonize
     elif [ -n "$checknvmeone" ] && [ -z "$checknvmetwo" ]; then
-        echo ""
-        echo "NOTICE: using nvme1 only"
-        echo ""
+    echo ""
+    echo "NOTICE: using nvme1 only"
+    echo ""
 
-        cd "${QEMUBASE}"/share/qemu || exit
+    cd "${QEMUBASE}"/share/qemu || exit
 
         "${QEMUBIN}" \
           -net nic \
@@ -266,8 +294,9 @@ elif [ "$USENVME" -eq 1 ]; then
           -vga "${MYVGA}" \
           -usbdevice tablet \
           -k "${MYKEYMAP}" \
-          -cdrom /tmp/"${MFSBSDFILE}" \
+          -cdrom "${QEMUBASE}/${MFSBSDFILE}" \
           -hda /dev/nvme0n1 \
+          -drive file="${QEMUBASE}/${MYISOAUTH}",media=cdrom \
           -boot once=d \
           -vnc "${MYVNC}" \
           -D "${MYLOG}" \
@@ -275,27 +304,42 @@ elif [ "$USENVME" -eq 1 ]; then
    fi
 fi
 
-# let the system boot
-echo "Please wait for SSH..."
+# let the system boot, yes we need this much time
+# at least 2 minutes with rc.local adjustments
+echo "Please wait, booting..."
 sleep 10
-echo "Please wait for SSH..."
+echo "Please wait, booting..."
 sleep 10
-echo "Please wait for SSH..."
+echo "Please wait, booting..."
 sleep 10
+echo "Please wait, booting..."
+sleep 10
+echo "Please wait, booting..."
+sleep 10
+echo "Please wait, booting..."
+sleep 10
+echo "Please wait, booting..."
+sleep 10
+echo "Please wait, booting..."
+sleep 10
+echo "Please wait, booting..."
+sleep 10
+echo "Please wait, booting..."
+sleep 10
+echo "Please wait, booting..."
+sleep 10
+echo "Almost ready..."
 
 # scan for keys
-ssh-keyscan -p 1022 -4 -T 30 127.0.0.1 >> /root/.ssh/known_hosts
-
-# copy over key using curl instead of ssh-copy-id
-# we do this because we can't pipe the password to ssh-copy-id and expect & sshpass aren't installed on rescue afaik
-
-curl --insecure --user root:"${MYPASSWORD}" -T "${QEMUBASE}"/COPYKEY.pub -k sftp://127.0.0.1:1022/root/.ssh/authorized_keys --ftp-create-dirs
+ssh-keyscan -p 1022 -T 30 127.0.0.1
 
 # we should be able to ssh without a password now
+echo "The system should ready to access with automatic login from a host with the associated private key!"
 echo ""
-echo "The system is ready to access from a host with the associated private key!"
+echo "  ssh -p 1022 root@${MYPRIMARYIP}"
 echo ""
-echo "Open SSH client and connect to this address: ssh -p 1022 root@${MYPRIMARYIP} and the login should be automatic and key-based. Password access is not yet disabled!"
+echo "If you have difficulty connecting dueh ssh key exchange error then WAIT 2 MINUTES and try again. SSH needs to come up correctly first."
 echo ""
 echo "Run 'zfsinstall -h' for install options, or provision with ansible scripts that cover installation."
 echo ""
+echo "--- DEPENGUINME SCRIPT COMPLETE ---"
