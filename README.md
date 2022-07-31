@@ -13,7 +13,7 @@ wget https://depenguin.me/run.sh && chmod +x run.sh && ./run.sh [ -k /path/to/au
 
 Supporting files will be downloaded to /tmp. You must be root.
 
-You can pass in one or both options "-k" and "-n" but it will exit if none listed.
+You can pass in one or both of the parameters "-k" and "-n" but it will exit if none listed. You must include a pubkey to get access to the installer.
 
 ```
 note: run.sh on the website is a symlink to the depenguinme.sh script
@@ -22,10 +22,10 @@ note: run.sh on the website is a symlink to the depenguinme.sh script
 ### 2. Connect via SSH
 Wait up to 5 minutes and connect via SSH:
 ```
-ssh -p 1022 root@your-host-ip
+ssh -p 1022 mfsbsd@your-host-ip
 ```
 
-In case it's needed, the username is root and password mfsroot
+This is a secured-by-ssh-key installer. The username is mfsbsd and you can sudo su - to root without a password. You cannot login as root.
 
 ### 3. Install FreeBSD-13.1
 The environment includes base.txz and kernel.txz needed for FreeBSD install.
