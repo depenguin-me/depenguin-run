@@ -27,6 +27,8 @@ ssh -p 1022 mfsbsd@your-host-ip
 
 This is a secured-by-ssh-key installer. The username is mfsbsd and you can sudo su - to root without a password. You cannot login as root.
 
+If trouble with ssh connection, wait 2 minutes and try again.
+
 ### 3. Install FreeBSD-13.1
 The environment includes base.txz and kernel.txz needed for FreeBSD install.
 
