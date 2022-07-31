@@ -6,6 +6,9 @@
 #
 # v0.0.2  2022-07-30  bretton depenguin.me
 #  retrieve and insert ssh key
+#
+# v0.0.3  2022-07-31  bretton depenguin.me
+#  use uefi.bin as bios to enable support of >2TB disks
 
 # this script must be run as root
 if [ "$EUID" -ne 0 ]; then
@@ -44,7 +47,7 @@ USENVME=0
 MYPRIMARYIP=$(ip route get 1 | awk '{print $(NF-2);exit}')
 MYVNC="127.0.0.1:1"
 MYVGA="std"   # could be qxl but not enabled for the static-qemu binary
-MYBIOS="bios-256k.bin"
+MYBIOS="uefi.bin"  # default is bios-256k.bin, uefi.bin is downloaded separately
 MYKEYMAP="keymaps/en-us"
 MYLOG="${QEMUBASE}/qemu-depenguin.log"
 MYPASSWORD="mfsroot"
@@ -67,12 +70,22 @@ export MFSBSDFILE
 # - https://cdn.rodney.io/content/blog/files/vkvm.tar.gz
 # - https://abcvg.ovh/uploads/need/vkvm-latest.tar.gz
 # + https://depenguin.me/files/vkvm.tar.gz
+#
+# For bios supporting >2TB disks
+# - https://support.org.ua/Soft/vKVM/orig/uefi.tar.gz
+# + https://depenguin.me/files/vkvm.tar.gz
 ###
+
+# static qemu files
 QEMUSTATICSRC="https://depenguin.me/files/vkvm.tar.gz"
 export QEMUSTATICSRC
 QEMUSTATICFILE=$(echo "${QEMUSTATICSRC}"|awk -F "/" '{print $5}')
 export QEMUSTATICFILE
 QEMUBIN="${QEMUBASE}/qemu-system-x86_64"
+QEMUALTBIOSSRC="https://depenguin.me/files/uefi.tar.gz"
+export QEMUALTBIOSSRC
+QEMUALTBIOSFILE=$(echo "${QEMUALTBIOSSRC}"|awk -F "/" '{print $5}')
+export QEMUALTBIOSFILE
 
 # change directory to /tmp to continue
 cd "${QEMUBASE}" || exit
@@ -99,6 +112,7 @@ wget -qc "${MFSBSDISO}"
 # download qemu static
 wget -qc "${QEMUSTATICSRC}"
 
+# extract qemu-system-x86_64
 if [ -f "${QEMUSTATICFILE}" ]; then
     tar -xzvf "${QEMUSTATICFILE}"
 else
@@ -109,6 +123,19 @@ fi
 # check if qemu-static file exists
 echo "Checking if ${QEMUBIN} exists"
 stat "${QEMUBIN}" || exit
+
+# download UEFI bios
+wget -qc "${QEMUALTBIOSSRC}"
+
+# extract the alternate uefi bios
+if [ -f "${QEMUALTBIOSFILE}" ]; then
+    cd share/qemu || exit
+    tar -xzf "${QEMUBASE}"/"${QEMUALTBIOSFILE}"
+    cd "${QEMUBASE}" || exit
+else
+    echo "Missing uefi.tar.gz"
+    exit 1
+fi
 
 # check if sda & sdb
 checkdiskone=$(lsblk |grep sda |head -1)
