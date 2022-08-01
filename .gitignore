@@ -1,0 +1,8 @@
+keys.txt
+myiso.iso
+build/
+files/
+tmp/
+qemu-system-x85_64
+id_rsa.pub
+COPYKEY.pub
