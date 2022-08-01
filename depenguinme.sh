@@ -121,7 +121,8 @@ export MFSBSDISO  # XXX: why export?
 # + https://depenguin.me/files/vkvm.tar.gz
 ###
 
-QEMUBIN=$(which qemu-system-x86_64)
+QEMUBIN=$(which qemu-system-x86_64 ||\
+  exit_error "Could not find qemu-system-x86_64")
 
 # change directory to /tmp to continue
 cd "${QEMUBASE}" || exit_error "Could not cd to $QEMUBASE"
@@ -157,10 +158,6 @@ fi
 
 # download mfsbsd image
 wget -qc -O "${MFSBSDFILE}" "${MFSBSDISO}" || exit_error "Could not download mfsbsd image"
-
-# check if qemu binay exists
-echo "Checking if ${QEMUBIN} exists"
-stat "${QEMUBIN}" || exit_error "Couldn't find qemu binary $QEMUBIN"
 
 # check if sda & sdb
 echo "Searching sd[ab]"
