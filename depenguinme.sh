@@ -23,10 +23,10 @@ while getopts ":k:n:" flags; do
     case "${flags}" in
         k)
             AUTHKEYURL=""
-            AUTHKEYFILE=${OPTARG}
+            AUTHKEYFILE=$(realpath "${OPTARG}")
             ;;
         n)
-            AUTHKEYURL=${OPTARG}
+            AUTHKEYURL="${OPTARG}"
             AUTHKEYFILE=""
             ;;
         *)
