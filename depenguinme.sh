@@ -275,7 +275,7 @@ fi
 
 	  ssh -p 1022 mfsbsd@${MYPRIMARYIP}
 
-	If you have difficulty connecting dueh ssh key exchange error then WAIT 2 MINUTES and try again.
+	If you have difficulty connecting due to ssh key exchange error. then WAIT 2 MINUTES and try again.
 	SSH needs to come up correctly first.
 
 	Run 'zfsinstall -h' for install options, or provision with ansible scripts that cover installation.
