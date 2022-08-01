@@ -190,7 +190,42 @@ if [ -n "${mycheck}" ]; then
 fi
 set -e
 
-# basic arguments to qemu
+disks=()
+
+# start qemu-static with parameters
+if [ "$USENVME" -eq 0 ]; then
+	if [ -n "$checkdiskone" ] && [ -n "$checkdisktwo" ]; then
+		printf "\nNOTICE: using sda and sdb\n\n"
+		disks=(
+		  -drive file=/dev/sda,format=raw \
+		  -drive file=/dev/sdb,format=raw \
+		)
+	    elif [ -n "$checkdiskone" ] && [ -z "$checkdisktwo" ]; then
+		printf "\nNOTICE: using sda only\n\n"
+		disks=(
+		  -drive file=/dev/sda,format=raw \
+		)
+	   fi
+elif [ "$USENVME" -eq 1 ]; then
+	if [ -n "$checknvmeone" ] && [ -n "$checknvmetwo" ]; then
+		printf "\nNOTICE: using nvme0 and nvme1\n\n"
+		disks=(
+		  -drive file=/dev/nvme0n1,format=raw \
+		  -drive file=/dev/nvme1n1,format=raw \
+		)
+	elif [ -n "$checknvmeone" ] && [ -z "$checknvmetwo" ]; then
+		printf "\nNOTICE: using nvme0 only\n\n"
+		disks=(
+		  -drive file=/dev/nvme0n1,format=raw \
+		)
+	fi
+fi
+
+if [ ${#disks[@]} -eq 0 ]; then
+	exit_error "Could not find any disks"
+fi
+
+# arguments to qemu
 qemu_args=(\
   -net nic \
   -net "user,hostfwd=tcp::1022-:22" \
@@ -203,6 +238,7 @@ qemu_args=(\
   -bios "${MYBIOS}" \
   -vga "${MYVGA}" \
   -k "${MYKEYMAP}" \
+  "${disks[@]}" \
   -cdrom "${MFSBSDFILE}" \
   -drive file="${MYISOAUTH},media=cdrom" \
   -boot once=d \
@@ -214,42 +250,7 @@ if [ "$DAEMONIZE" = "YES" ]; then
 	qemu_args+=(-daemonize)
 fi
 
-disks=()
-
-# start qemu-static with parameters
-if [ "$USENVME" -eq 0 ]; then
-	if [ -n "$checkdiskone" ] && [ -n "$checkdisktwo" ]; then
-		printf "\nNOTICE: using sda and sdb\n\n"
-		disks=(
-		  -hda /dev/sda \
-		  -hdb /dev/sdb \
-		)
-	elif [ -n "$checkdiskone" ] && [ -z "$checkdisktwo" ]; then
-		printf "\nNOTICE: using sda only\n\n"
-		disks=(
-		  -hda /dev/sda \
-		)
-	fi
-elif [ "$USENVME" -eq 1 ]; then
-	if [ -n "$checknvmeone" ] && [ -n "$checknvmetwo" ]; then
-		printf "\nNOTICE: using nvme0 and nvme1\n\n"
-		disks=(
-		  -hda /dev/nvme0n1 \
-		  -hdb /dev/nvme1n1 \
-		)
-	elif [ -n "$checknvmeone" ] && [ -z "$checknvmetwo" ]; then
-		printf "\nNOTICE: using nvme0 only\n\n"
-		disks=(
-		  -hda /dev/nvme0n1 \
-		)
-	fi
-fi
-
-if [ ${#disks[@]} -eq 0 ]; then
-	exit_error "Could not find any disks"
-fi
-
-
+# check for qemu start in the background
 (
 	set +e
 	sleep 2
