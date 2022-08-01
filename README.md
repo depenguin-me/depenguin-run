@@ -8,7 +8,9 @@ https://depenguin.me
 ### 1. Download and run installer script
 Boot your server into rescue mode, then download and run the custom [mfsBSD-based installer](https://github.com/depenguin-me/depenguin-installer) for FreeBSD-13.1 with root-on-ZFS.
 ```
-wget https://depenguin.me/run.sh && chmod +x run.sh && ./run.sh [ -k /path/to/authorized_keys ] [ -n "http://host.dom/keys.pub" ]
+wget https://depenguin.me/run.sh && chmod +x run.sh && ./run.sh \
+  [-d ] [ -k /path/to/authorized_keys ] [ -n "http://host.dom/keys.pub" ] \
+  [-m <url of own mfsbsd image> ]
 ```
 
 Supporting files will be downloaded to /tmp. You must be root.
