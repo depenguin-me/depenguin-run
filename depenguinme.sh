@@ -18,8 +18,8 @@
 
 # this script must be run as root
 if [ "$EUID" -ne 0 ]; then
-  echo "Please run this script as root. Recovery console should be root user"
-  exit
+	echo "Please run this script as root. Recovery console should be root user"
+	exit
 fi
 
 set -eo pipefail
@@ -31,20 +31,22 @@ exit_error() {
 
 usage() {
 	cat <<-EOF
-	Usage: $(basename "${BASH_SOURCE[0]}") [-hd] [-k authorized_keys] [-n URL] [-m url]
+	Usage: $(basename "${BASH_SOURCE[0]}") [-hd] [-m url] authorized_keys ...
 
 	  -h Show help
 	  -d daemonize
-	  -k /path/to/authorized_keys : Path to authorized_keys file
-	  -n : https://host.domain/authorized_keys : URL to authorized key file
-	  -m : URL of mfsbsd image (defaults to image on https://dependuin.me)
+	  -m : URL of mfsbsd image (defaults to image on https://depenguin.me)
 
-	  At least one of -k and -n is mandatory.
+	  authorized_keys can be file or a URL to a file which contains ssh public
+	  keys for accessing the mfsbsd user within the vm. It can be used
+	  multiple times.
 	EOF
 }
 
-AUTHKEYURL=
-AUTHKEYFILE=
+is_url() {
+	[[ "$1" =~ ^(http|https|ftp):// ]]
+}
+
 DAEMONIZE=NO
 MFSBSDISO="https://depenguin.me/files/mfsbsd-13.1-RELEASE-amd64.iso"
 
@@ -57,17 +59,8 @@ while getopts "hdk:m:n:" flags; do
 	d)
 		DAEMONIZE=YES
 		;;
-	k)
-		AUTHKEYURL=""
-		AUTHKEYFILE=$(realpath "${OPTARG}")
-		;;
-
 	m)
 		MFSBSDISO="${OPTARG}"
-		;;
-	n)
-		AUTHKEYURL=${OPTARG}
-		AUTHKEYFILE=""
 		;;
 	*)
 		exit_error "$(usage)"
@@ -76,9 +69,20 @@ while getopts "hdk:m:n:" flags; do
 done
 shift "$((OPTIND-1))"
 
-if [ -z "${AUTHKEYFILE}" ] && [ -z "${AUTHKEYURL}" ]; then
+if [ "$#" -eq 0 ]; then
 	exit_error "$(usage)"
 fi
+
+authkeys=()
+
+while [ "$#" -gt 0 ]; do
+	if is_url "$1"; then
+		authkeys+=("$1")
+	else
+		authkeys+=("$(realpath "$1")")
+	fi
+	shift
+done
 
 # install required packages
 apt-get update
@@ -130,13 +134,13 @@ cd "${QEMUBASE}" || exit_error "Could not cd to $QEMUBASE"
 # setup or retrieve authorised keys
 : >COPYKEY.pub
 
-if [ -n "${AUTHKEYFILE}" ]; then
-	cat "${AUTHKEYFILE}" >>COPYKEY.pub
-fi
-
-if [ -n "${AUTHKEYURL}" ]; then
-	wget -qO - "${AUTHKEYURL}" >>COPYKEY.pub
-fi
+for key in "${authkeys[@]}"; do
+	if is_url "$key"; then
+		wget -qO - "$key" >>COPYKEY.pub
+	else
+		cat "$key" >>COPYKEY.pub
+	fi
+done
 
 [ -s COPYKEY.pub ] || exit_error "Authorized key sources are empty"
 
@@ -197,26 +201,26 @@ if [ "$USENVME" -eq 0 ]; then
 	if [ -n "$checkdiskone" ] && [ -n "$checkdisktwo" ]; then
 		printf "\nNOTICE: using sda and sdb\n\n"
 		disks=(
-		  -drive file=/dev/sda,format=raw \
-		  -drive file=/dev/sdb,format=raw \
+		  -drive "file=/dev/sda,format=raw" \
+		  -drive "file=/dev/sdb,format=raw" \
 		)
 	    elif [ -n "$checkdiskone" ] && [ -z "$checkdisktwo" ]; then
 		printf "\nNOTICE: using sda only\n\n"
 		disks=(
-		  -drive file=/dev/sda,format=raw \
+		  -drive "file=/dev/sda,format=raw" \
 		)
 	   fi
 elif [ "$USENVME" -eq 1 ]; then
 	if [ -n "$checknvmeone" ] && [ -n "$checknvmetwo" ]; then
 		printf "\nNOTICE: using nvme0 and nvme1\n\n"
 		disks=(
-		  -drive file=/dev/nvme0n1,format=raw \
-		  -drive file=/dev/nvme1n1,format=raw \
+		  -drive "file=/dev/nvme0n1,format=raw" \
+		  -drive "file=/dev/nvme1n1,format=raw" \
 		)
 	elif [ -n "$checknvmeone" ] && [ -z "$checknvmetwo" ]; then
 		printf "\nNOTICE: using nvme0 only\n\n"
 		disks=(
-		  -drive file=/dev/nvme0n1,format=raw \
+		  -drive "file=/dev/nvme0n1,format=raw" \
 		)
 	fi
 fi
