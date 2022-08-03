@@ -22,6 +22,8 @@ if [ "$EUID" -ne 0 ]; then
 	exit
 fi
 
+echo $UNQUOTED
+
 set -eo pipefail
 
 exit_error() {
