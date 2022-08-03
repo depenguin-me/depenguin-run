@@ -312,7 +312,7 @@ fi
 	Please report success or problems to us:
 	https://github.com/depenguin-me/mfsbsd-13.1-script/issues
 
-	$(print_version) at $(date "+%Y-%m-%d")
+	$(print_version) on $(date "+%Y-%m-%d")
 
 	EOF
 
