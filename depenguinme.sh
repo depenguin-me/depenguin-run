@@ -235,8 +235,6 @@ qemu_args=(\
   -net "user,hostfwd=tcp::1022-:22" \
   -m 1024M \
   -rtc base=localtime \
-  -enable-kvm \
-  -cpu host \
   -M pc \
   -smp 1 \
   -bios "${MYBIOS}" \
@@ -249,6 +247,11 @@ qemu_args=(\
   -vnc "${MYVNC}" \
   -D "${MYLOG}"\
 )
+
+if kvm-ok; then
+	qemu_args+=(-enable-kvm -cpu host)
+fi
+
 
 if [ "$DAEMONIZE" = "YES" ]; then
 	qemu_args+=(-daemonize)
