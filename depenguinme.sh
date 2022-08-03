@@ -122,7 +122,7 @@ export MFSBSDISO  # XXX: why export?
 #
 # For bios supporting >2TB disks
 # - https://support.org.ua/Soft/vKVM/orig/uefi.tar.gz
-# + https://depenguin.me/files/vkvm.tar.gz
+# + https://depenguin.me/files/uefi.tar.gz
 ###
 
 QEMUBIN=$(which qemu-system-x86_64 ||\
