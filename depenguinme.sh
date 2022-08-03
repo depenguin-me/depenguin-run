@@ -164,6 +164,8 @@ done
 
 if [ "$REQUIRE_SSHKEY" = "YES" ]; then
 	[ -s COPYKEY.pub ] || exit_error "Authorized key sources are empty"
+else
+	touch COPYKEY.pub
 fi
 
 # temp solution to make iso with authorized_keys
