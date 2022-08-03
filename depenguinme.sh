@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 #
 # depenguinme.sh
+
+# please bump version on change
+VERSION="v0.0.5"
+
 # v0.0.1  2022-07-28  bretton depenguin.me
 #  this is a proof of concept with parts to be further developed
 #
@@ -15,6 +19,9 @@
 #  use more official packages
 #  add options
 #  some cleanup
+#
+# v0.0.5 2022-08-03 various artists
+#
 
 # this script must be run as root
 if [ "$EUID" -ne 0 ]; then
@@ -29,15 +36,20 @@ exit_error() {
 	exit 1;
 }
 
+print_version() {
+	echo "depenguinme $VERSION"
+}
+
 usage() {
 	cat <<-EOF
-	Usage: $(basename "${BASH_SOURCE[0]}") [-hd] [-m url] authorized_keys ...
+	Usage: $(basename "${BASH_SOURCE[0]}") [-hvd] [-m url] authorized_keys ...
 
 	  -h Show help
+	  -v Show version
 	  -d daemonize
 	  -m : URL of mfsbsd image (defaults to image on https://depenguin.me)
-               When specifying an non-default mfsbsd image, authorized_keys becomes
-               optional.
+	       When specifying an non-default mfsbsd image, authorized_keys becomes
+	       optional.
 
 	  authorized_keys can be file or a URL to a file which contains ssh public
 	  keys for accessing the mfsbsd user within the vm. It can be used
@@ -53,10 +65,14 @@ REQUIRE_SSHKEY=YES
 DAEMONIZE=NO
 MFSBSDISO="https://depenguin.me/files/mfsbsd-13.1-RELEASE-amd64.iso"
 
-while getopts "hdk:m:n:" flags; do
+while getopts "hvdk:m:n:" flags; do
 	case "${flags}" in
 	h)
 		usage
+		exit 0
+		;;
+	v)
+		print_version
 		exit 0
 		;;
 	d)
@@ -292,6 +308,11 @@ fi
 	SSH needs to come up correctly first.
 
 	Run 'zfsinstall -h' for install options, or provision with ansible scripts that cover installation.
+
+	Please report success or problems to us:
+	https://github.com/depenguin-me/mfsbsd-13.1-script/issues
+
+	$(print_version) at $(date "+%Y-%m-%d")
 
 	EOF
 
