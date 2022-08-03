@@ -27,7 +27,7 @@ Example invocations:
     ./run.sh /tmp/my_public_key
 
 ### 3. Connect via SSH
-Wait up to 5 minutes and connect via SSH:
+Wait until the script reports SSH to be available (takes a few minutes), then connect:
 
     ssh -i /path/to/privkey -p 1022 mfsbsd@your-host-ip
 
