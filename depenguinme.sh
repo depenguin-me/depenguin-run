@@ -36,6 +36,8 @@ usage() {
 	  -h Show help
 	  -d daemonize
 	  -m : URL of mfsbsd image (defaults to image on https://depenguin.me)
+               When specifying an non-default mfsbsd image, authorized_keys becomes
+               optional.
 
 	  authorized_keys can be file or a URL to a file which contains ssh public
 	  keys for accessing the mfsbsd user within the vm. It can be used
@@ -47,6 +49,7 @@ is_url() {
 	[[ "$1" =~ ^(http|https|ftp):// ]]
 }
 
+REQUIRE_SSHKEY=YES
 DAEMONIZE=NO
 MFSBSDISO="https://depenguin.me/files/mfsbsd-13.1-RELEASE-amd64.iso"
 
@@ -61,6 +64,7 @@ while getopts "hdk:m:n:" flags; do
 		;;
 	m)
 		MFSBSDISO="${OPTARG}"
+		REQUIRE_SSHKEY=NO
 		;;
 	*)
 		exit_error "$(usage)"
@@ -69,7 +73,7 @@ while getopts "hdk:m:n:" flags; do
 done
 shift "$((OPTIND-1))"
 
-if [ "$#" -eq 0 ]; then
+if [ "$#" -eq 0 ] && [ "$REQUIRE_SSHKEY" = "YES" ]; then
 	exit_error "$(usage)"
 fi
 
@@ -142,7 +146,9 @@ for key in "${authkeys[@]}"; do
 	fi
 done
 
-[ -s COPYKEY.pub ] || exit_error "Authorized key sources are empty"
+if [ "$REQUIRE_SSHKEY" = "YES" ]; then
+	[ -s COPYKEY.pub ] || exit_error "Authorized key sources are empty"
+fi
 
 # temp solution to make iso with authorized_keys
 mkdir -p "${QEMUBASE}"/myiso
