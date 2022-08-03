@@ -113,6 +113,8 @@ apt-get install -y qemu
 QEMUBASE="/tmp/depenguinme"
 USENVME=0
 MYPRIMARYIP=$(ip route get 1 | awk '{print $(NF-2);exit}')
+MYSSHEXTERNALPORT="1022"
+MYSSHINTERNALPORT="22"
 MYVNC="127.0.0.1:1"
 MYVGA="std"   # could be qxl but not enabled for the static-qemu binary
 MYBIOS="/usr/share/ovmf/OVMF.fd"
@@ -256,7 +258,7 @@ fi
 # arguments to qemu
 qemu_args=(\
   -net nic \
-  -net "user,hostfwd=tcp::1022-:22" \
+  -net "user,hostfwd=tcp::${MYSSHEXTERNALPORT}-:${MYSSHINTERNALPORT}" \
   -m 1024M \
   -rtc base=localtime \
   -M pc \
