@@ -58,7 +58,7 @@ usage() {
 }
 
 is_url() {
-	[[ "$1" =~ ^(http|https|ftp):// ]]
+	[[ "$1" =~ ^(http|https|ftp|sftp):// ]]
 }
 
 REQUIRE_SSHKEY=YES
