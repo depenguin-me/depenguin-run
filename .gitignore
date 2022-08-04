@@ -1,8 +1,9 @@
-keys.txt
-myiso.iso
+.idea/
 build/
 files/
 tmp/
+keys.txt
+myiso.iso
 qemu-system-x86_64
 id_rsa.pub
 COPYKEY.pub
