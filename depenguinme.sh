@@ -119,6 +119,7 @@ done
 apt-get update
 apt-get install -y mkisofs
 apt-get install -y qemu
+apt-get install -y qemu-system-x86
 
 # vars, do not adjust unless you know what you're doing for this script
 QEMUBASE="/tmp/depenguinme"
