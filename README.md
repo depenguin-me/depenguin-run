@@ -17,7 +17,7 @@ Boot your server into rescue mode, then download and run the custom [mfsBSD-base
 
 The "-d" parameter will send the qemu process to the background.
 
-The "-r" parameter allows setting qemu memory for low memory systems, default is `8G` for `8GB`.
+The "-r" parameter allows setting qemu memory for low memory systems, default is `8G` for `8GiB`.
 
 The "-m" parameter allows using a custom mfsbsd ISO.
 
