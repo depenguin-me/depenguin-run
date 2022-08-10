@@ -3,7 +3,7 @@
 # depenguinme.sh
 
 # please bump version on change
-VERSION="v0.0.6"
+VERSION="v0.0.7"
 
 # v0.0.1  2022-07-28  bretton depenguin.me
 #  this is a proof of concept with parts to be further developed
@@ -26,6 +26,9 @@ VERSION="v0.0.6"
 #  Bump qemu memory in options from 1GB to 8GB so tmpfs is large
 #  enough to download freebsd install files
 #  Add note about sudo to root before install
+#
+# v0.0.7 2022-08-11 grembo depenguin.me
+#  Only install dependencies if not found
 
 # this script must be run as root
 if [ "$EUID" -ne 0 ]; then
@@ -53,6 +56,7 @@ QEMU_RAM=$DEFAULT_QEMU_RAM
 REQUIRE_SSHKEY=YES
 DAEMONIZE=NO
 MFSBSDISO="https://depenguin.me/files/mfsbsd-13.1-RELEASE-amd64.iso"
+DEPS=("mkisofs:mkisofs" "qemu-system-x86_64:qemu-system-x86")  # binary:package
 
 usage() {
 	cat <<-EOF
@@ -115,11 +119,23 @@ while [ "$#" -gt 0 ]; do
 	shift
 done
 
+# determine required packages
+install_pkgs=()
+for cmd_pkg in "${DEPS[@]}"; do
+	cmd=$(echo "$cmd_pkg" | cut -d : -f 1)
+	pkg=$(echo "$cmd_pkg" | cut -d : -f 2)
+	if ! command -v "$cmd" &>/dev/null; then
+		install_pkgs+=("$pkg")
+	fi
+done
+
 # install required packages
-apt-get update
-apt-get install -y mkisofs
-apt-get install -y qemu
-apt-get install -y qemu-system-x86
+if [ ${#install_pkgs[@]} -gt 0 ]; then
+	apt-get update
+	for pkg in "${install_pkgs[@]}"; do
+		apt-get install -y "$pkg"
+	done
+fi
 
 # vars, do not adjust unless you know what you're doing for this script
 QEMUBASE="/tmp/depenguinme"
@@ -238,12 +254,12 @@ if [ "$USENVME" -eq 0 ]; then
 		  -drive "file=/dev/sda,format=raw" \
 		  -drive "file=/dev/sdb,format=raw" \
 		)
-	    elif [ -n "$checkdiskone" ] && [ -z "$checkdisktwo" ]; then
+	elif [ -n "$checkdiskone" ] && [ -z "$checkdisktwo" ]; then
 		printf "\nNOTICE: using sda only\n\n"
 		disks=(
 		  -drive "file=/dev/sda,format=raw" \
 		)
-	   fi
+	fi
 elif [ "$USENVME" -eq 1 ]; then
 	if [ -n "$checknvmeone" ] && [ -n "$checknvmetwo" ]; then
 		printf "\nNOTICE: using nvme0 and nvme1\n\n"
