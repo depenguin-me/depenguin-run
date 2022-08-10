@@ -44,9 +44,19 @@ print_version() {
 	echo "depenguinme $VERSION"
 }
 
+is_url() {
+	[[ "$1" =~ ^(http|https|ftp):// ]]
+}
+
+DEFAULT_QEMU_RAM=8G
+QEMU_RAM=$DEFAULT_QEMU_RAM
+REQUIRE_SSHKEY=YES
+DAEMONIZE=NO
+MFSBSDISO="https://depenguin.me/files/mfsbsd-13.1-RELEASE-amd64.iso"
+
 usage() {
 	cat <<-EOF
-	Usage: $(basename "${BASH_SOURCE[0]}") [-hvd] [-m url] authorized_keys ...
+	Usage: $(basename "${BASH_SOURCE[0]}") [-hvd] [-m url] [-r ram] authorized_keys ...
 
 	  -h Show help
 	  -v Show version
@@ -54,6 +64,8 @@ usage() {
 	  -m : URL of mfsbsd image (defaults to image on https://depenguin.me)
 	       When specifying an non-default mfsbsd image, authorized_keys becomes
 	       optional.
+	  -r : Memory available to the VM (defaults to $DEFAULT_QEMU_RAM).
+	       Supported suffixes are 'M' for MiB and 'G' for GiB.
 
 	  authorized_keys can be file or a URL to a file which contains ssh public
 	  keys for accessing the mfsbsd user within the vm. It can be used
@@ -61,15 +73,7 @@ usage() {
 	EOF
 }
 
-is_url() {
-	[[ "$1" =~ ^(http|https|ftp):// ]]
-}
-
-REQUIRE_SSHKEY=YES
-DAEMONIZE=NO
-MFSBSDISO="https://depenguin.me/files/mfsbsd-13.1-RELEASE-amd64.iso"
-
-while getopts "hvdk:m:n:" flags; do
+while getopts "hvdm:r:" flags; do
 	case "${flags}" in
 	h)
 		usage
@@ -85,6 +89,9 @@ while getopts "hvdk:m:n:" flags; do
 	m)
 		MFSBSDISO="${OPTARG}"
 		REQUIRE_SSHKEY=NO
+		;;
+	r)
+		QEMU_RAM="${OPTARG}"
 		;;
 	*)
 		exit_error "$(usage)"
@@ -259,7 +266,7 @@ fi
 qemu_args=(\
   -net nic \
   -net "user,hostfwd=tcp::1022-:22" \
-  -m 8192M \
+  -m "$QEMU_RAM" \
   -rtc base=localtime \
   -M pc \
   -smp 1 \
