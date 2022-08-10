@@ -3,7 +3,7 @@
 # depenguinme.sh
 
 # please bump version on change
-VERSION="v0.0.5"
+VERSION="v0.0.6"
 
 # v0.0.1  2022-07-28  bretton depenguin.me
 #  this is a proof of concept with parts to be further developed
@@ -22,6 +22,9 @@ VERSION="v0.0.5"
 #
 # v0.0.5 2022-08-03 various artists
 #
+# v0.0.6 2022-08-10 bretton depenguin.me
+#  Bump qemu memory in options from 1GB to 8GB so tmpfs is large
+#  enough to download freebsd install files
 
 # this script must be run as root
 if [ "$EUID" -ne 0 ]; then
@@ -255,7 +258,7 @@ fi
 qemu_args=(\
   -net nic \
   -net "user,hostfwd=tcp::1022-:22" \
-  -m 1024M \
+  -m 8192M \
   -rtc base=localtime \
   -M pc \
   -smp 1 \
