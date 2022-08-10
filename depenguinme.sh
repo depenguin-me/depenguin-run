@@ -25,6 +25,7 @@ VERSION="v0.0.6"
 # v0.0.6 2022-08-10 bretton depenguin.me
 #  Bump qemu memory in options from 1GB to 8GB so tmpfs is large
 #  enough to download freebsd install files
+#  Add note about sudo to root before install
 
 # this script must be run as root
 if [ "$EUID" -ne 0 ]; then
@@ -309,6 +310,8 @@ fi
 
 	If you have difficulty connecting due to ssh key exchange error. then WAIT 2 MINUTES and try again.
 	SSH needs to come up correctly first.
+
+    Change to root to continue install with 'sudo su -'.
 
 	Run 'zfsinstall -h' for install options, or provision with ansible scripts that cover installation.
 
