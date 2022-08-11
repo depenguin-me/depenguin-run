@@ -3,7 +3,7 @@
 # depenguinme.sh
 
 # please bump version on change
-VERSION="v0.0.7"
+VERSION="v0.0.8"
 
 # v0.0.1  2022-07-28  bretton depenguin.me
 #  this is a proof of concept with parts to be further developed
@@ -29,6 +29,23 @@ VERSION="v0.0.7"
 #
 # v0.0.7 2022-08-11 grembo depenguin.me
 #  Only install dependencies if not found
+#
+# v0.0.8 2022-08-11 bretton depenguin.me
+#  Remove unnecessary exported variables
+#  migrate historical context info from script to changelog
+#   2022-07-28
+#   due to problems compiling static qemu binary from source we'll use
+#   the one referenced in this post
+#   https://forums.freebsd.org/threads/installing-freebsd-in-hetzner.85399/post-575119
+#   Mirrors
+#   - https://support.org.ua/Soft/vKVM/orig/vkvm.tar.gz
+#   - https://cdn.rodney.io/content/blog/files/vkvm.tar.gz
+#   - https://abcvg.ovh/uploads/need/vkvm-latest.tar.gz
+#   - https://depenguin.me/files/vkvm.tar.gz
+#   For bios supporting >2TB disks and static qemu above
+#   - https://support.org.ua/Soft/vKVM/orig/uefi.tar.gz
+#   - https://depenguin.me/files/uefi.tar.gz
+#
 
 # this script must be run as root
 if [ "$EUID" -ne 0 ]; then
@@ -153,26 +170,6 @@ mkdir -p "$QEMUBASE"
 
 ###
 # Custom build mfsbsd file
-###
-export MFSBSDFILE  # XXX: why export?
-export MFSBSDISO  # XXX: why export?
-
-###
-# 2022-07-28
-# due to problems compiling static qemu binary from source we'll use
-# the one referenced in this post
-# https://forums.freebsd.org/threads/installing-freebsd-in-hetzner.85399/post-575119
-# Mirrors
-# - https://support.org.ua/Soft/vKVM/orig/vkvm.tar.gz
-# - https://cdn.rodney.io/content/blog/files/vkvm.tar.gz
-# - https://abcvg.ovh/uploads/need/vkvm-latest.tar.gz
-# + https://depenguin.me/files/vkvm.tar.gz
-#
-# For bios supporting >2TB disks
-# - https://support.org.ua/Soft/vKVM/orig/uefi.tar.gz
-# + https://depenguin.me/files/uefi.tar.gz
-###
-
 QEMUBIN=$(which qemu-system-x86_64 ||\
   exit_error "Could not find qemu-system-x86_64")
 
