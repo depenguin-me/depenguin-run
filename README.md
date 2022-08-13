@@ -39,69 +39,37 @@ Once logged in, you can `sudo su -` to root without a password. You cannot login
 
 If you have trouble with the ssh connection, wait 2 minutes and try again.
 
-### 4. Install FreeBSD-13.1
-To install FreeBSD-13.1 run the ```zfsinstall``` program with configuration parameters
+### 4. Install FreeBSD-13.1 using unattended bsinstall
+Copy the file `sample.depenguin_settings.sh` to `depenguin_settings.sh` and edit for your server's details.
 
-    /root/bin/zfsinstall [-h] -d geom_provider [-d geom_provider ...] [ -u dist_url ] [-r mirror|raidz[1|2|3]] [-m mount_point] [-p zfs_pool_name] [-s swap_partition_size] [-z zfs_partition_size] [-c] [-C] [-l] [-4] [-A]
+    cp sample.depenguin_settings.sh depenguin_settings.sh
+    nano depenguin_settings.sh
 
-#### Examples
+Configure your specifics, note that Hetzner DNS is in this example, you might need other servers listed.
 
-##### Single disk ada0
+    conf_hostname="depenguintest"
+    conf_interface="igb0"
+    conf_ipv4="1.2.3.4"
+    conf_ipv6="abcd:xxxx:yyyy:zzzz::p"
+    conf_gateway="6.7.8.9"
+    conf_nameserveripv4one="185.12.64.1"
+    conf_nameserveripv4two="185.12.64.2"
+    conf_nameserveripv6one="2a01:4ff:ff00::add:1"
+    conf_nameserveripv6two="2a01:4ff:ff00::add:2"
+    conf_username="myusername"
+    conf_pubkeyurl="http://url.host/keys.txt"
+    conf_disks="ada0 ada1" # or ada0 | or nvme0n1 | or nvme0n1 nvme1n1
+    conf_disktype="mirror" # or stripe for single disk
+    run_installer="1" # set to 1 to enable installer 
 
-    zfsinstall -d ada0 -s 4G -A -4 -c -p zroot
+### 5. Run the depenguin bsdinstall script
+This script will update the `INSTALLERCONFIG` file used by `bsdinstall` with the values set above.
 
-##### Mirror disks ada0 and ada1
+    ./depenguin_bsdinstall.sh 
 
-    zfsinstall -d ada0 -d ada1 -r mirror -s 4G -A -4 -c -p zroot
-
-### 5. Complete post-install actions
-Chroot to installed system.
-
-    chroot /mnt
-
-Create a group and username, set ssh keys.
-
-    pw groupadd YOUR-USER
-    pw useradd -m -n YOUR-USER -g YOUR-USER -G wheel -h - -c "your name"
-    cd /home/YOUR-USER
-    mkdir .ssh && chown YOUR-USER .ssh && chmod 700 .ssh
-    cd .ssh
-    vi authorized_keys    #paste in SSH pubkeys
-    chown YOUR-USER authorized_keys && chmod 600 authorized_keys
-    cd
-
-Configure `/etc/rc.conf` for hostname, networking, SSH server.
-
-A configuration suitable for Hetzner is listed below. Adapt to your settings:
-
-    vi /etc/rc.conf
-    
-    hostname="yourhostname"
-    ifconfig_igb0_name="untrusted"
-    ifconfig_untrusted="up"
-    ifconfig_untrusted_ipv6="up"
-    ifconfig_untrusted_aliases="inet 1.2.3.4/32 inet6 1234::123:123:1234::2/64"
-    ipv6_activate_all_interfaces="YES"
-    static_routes="gateway default"
-    route_gateway="-host 6.7.8.9 -interface untrusted"
-    route_default="default 6.7.8.9"
-    ipv6_defaultrouter="fe80::1%untrusted"
-    sshd_enable="YES"
-    zfs_enable="YES"
-
-Configure `/etc/resolv.conf` for DNS servers. Hetzner's are used in this example:
-
-    vi /etc/resolv.conf
-    
-    search YOURDOMAIN
-    nameserver 185.12.64.1
-    nameserver 185.12.64.2
-    nameserver 2a01:4ff:ff00::add:1
-    nameserver 2a01:4ff:ff00::add:2
+When complete the mfsbsd VM will shutdown automatically.
 
 ### 6. Reboot
-Exit the chroot environment with `ctrl-d`. 
-
 Switch to the rescue console session and press `ctrl-c` to end qemu. Then type `reboot`. 
 
 ### 7. Connect to your new server

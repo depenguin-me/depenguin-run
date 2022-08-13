@@ -3,7 +3,7 @@
 # depenguinme.sh
 
 # please bump version on change
-VERSION="v0.0.8"
+VERSION="v0.0.9"
 
 # v0.0.1  2022-07-28  bretton depenguin.me
 #  this is a proof of concept with parts to be further developed
@@ -46,6 +46,8 @@ VERSION="v0.0.8"
 #   - https://support.org.ua/Soft/vKVM/orig/uefi.tar.gz
 #   - https://depenguin.me/files/uefi.tar.gz
 #
+# v0.0.9 2022-08-13 bretton depenguin.me
+#  README updates, switch to unattended bsdinstall process over zfsinstall
 
 # this script must be run as root
 if [ "$EUID" -ne 0 ]; then
