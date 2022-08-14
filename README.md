@@ -39,7 +39,7 @@ Once logged in, you can `sudo su -` to root without a password. You cannot login
 
 If you have trouble with the ssh connection, wait 2 minutes and try again.
 
-### 4. Install FreeBSD-13.1 using unattended bsinstall
+### 4. Install FreeBSD-13.1 using unattended bsdinstall
 Copy the file `sample.depenguin_settings.sh` to `depenguin_settings.sh` and edit for your server's details.
 
     cp sample.depenguin_settings.sh depenguin_settings.sh
