@@ -10,7 +10,7 @@ https://depenguin.me
 You must be logged in as root. Prepare file path or URL of SSH public key.
 
 ### 2. Download and run installer script
-Boot your server into rescue mode, then download and run the custom [mfsBSD-based installer](https://github.com/depenguin-me/depenguin-installer) for FreeBSD-13.1, with root-on-ZFS.
+Boot your server into rescue mode, then download and run the custom [mfsBSD-based installer](https://github.com/depenguin-me/depenguin-builder) for FreeBSD-13.1, with root-on-ZFS.
 
     wget https://depenguin.me/run.sh && chmod +x run.sh && \
       ./run.sh [ -d ] [ -r ram ] [ -m <url of own mfsbsd image> ] authorized_keys ...
