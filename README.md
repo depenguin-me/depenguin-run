@@ -10,7 +10,7 @@ https://depenguin.me
 You must be logged in as root. Prepare file path or URL of SSH public key.
 
 ### 2. Download and run installer script
-Boot your server into rescue mode, then download and run the custom [mfsBSD-based installer](https://github.com/depenguin-me/depenguin-installer) for FreeBSD-13.1, with root-on-ZFS.
+Boot your server into rescue mode, then download and run the custom [mfsBSD-based installer](https://github.com/depenguin-me/depenguin-builder) for FreeBSD-13.1, with root-on-ZFS.
 
     wget https://depenguin.me/run.sh && chmod +x run.sh && \
       ./run.sh [ -d ] [ -r ram ] [ -m <url of own mfsbsd image> ] authorized_keys ...
@@ -40,9 +40,9 @@ Once logged in, you can `sudo su -` to root without a password. You cannot login
 If you have trouble with the ssh connection, wait 2 minutes and try again.
 
 ### 4. Install FreeBSD-13.1 using unattended bsdinstall
-Copy the file `sample.depenguin_settings.sh` to `depenguin_settings.sh` and edit for your server's details.
+Copy the file `depenguin_settings.sh.sample` to `depenguin_settings.sh` and edit for your server's details.
 
-    cp sample.depenguin_settings.sh depenguin_settings.sh
+    cp depenguin_settings.sh.sample depenguin_settings.sh
     nano depenguin_settings.sh
 
 Configure your specifics, note that Hetzner DNS is in this example, you might need other servers listed.
