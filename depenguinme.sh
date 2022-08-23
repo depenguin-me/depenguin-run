@@ -74,8 +74,13 @@ DEFAULT_QEMU_RAM=8G
 QEMU_RAM=$DEFAULT_QEMU_RAM
 REQUIRE_SSHKEY=YES
 DAEMONIZE=NO
+USE_IPV6=NO
 MFSBSDISO="https://depenguin.me/files/mfsbsd-13.1-RELEASE-amd64.iso"
-DEPS=("mkisofs:mkisofs" "qemu-system-x86_64:qemu-system-x86")  # binary:package
+DEPS=(
+  "mkisofs:mkisofs"
+  "qemu-system-x86_64:qemu-system-x86"
+  "kvm-ok:cpu-checker"
+  )  # binary:package
 
 usage() {
 	cat <<-EOF
@@ -138,6 +143,13 @@ while [ "$#" -gt 0 ]; do
 	shift
 done
 
+# determine network stack
+if ! ip route get 1 >/dev/null 2>&1; then
+	USE_IPV6="YES"
+	echo "No IPv4 public IP found, Using IPv6"
+	DEPS+=("socat:socat")
+fi
+
 # determine required packages
 install_pkgs=()
 for cmd_pkg in "${DEPS[@]}"; do
@@ -159,7 +171,12 @@ fi
 # vars, do not adjust unless you know what you're doing for this script
 QEMUBASE="/tmp/depenguinme"
 USENVME=0
-MYPRIMARYIP=$(ip route get 1 | awk '{print $(NF-2);exit}')
+if [ "$USE_IPV6" = "YES" ]; then
+	MYPRIMARYIP=$(ip -6 addr | grep -i global | awk '{ print $2 }' |\
+	  cut -d / -f1 | head -n1)
+else
+	MYPRIMARYIP=$(ip route get 1 2>/dev/null | awk '{print $(NF-2);exit}')
+fi
 MYVNC="127.0.0.1:1"
 MYVGA="std"   # could be qxl but not enabled for the static-qemu binary
 MYBIOS="/usr/share/ovmf/OVMF.fd"
@@ -295,6 +312,7 @@ qemu_args=(\
   -boot once=d \
   -vnc "${MYVNC}" \
   -D "${MYLOG}"\
+  -monitor "unix:/tmp/depenguinme/qemu-monitor-socket,server,nowait" \
 )
 
 if kvm-ok; then
@@ -345,17 +363,37 @@ fi
 
 	EOF
 
+	if [ "$USE_IPV6" = "YES" ]; then
+		cat <<-EOF
+		NOTE: You are using an IPv6 only system. To enable IPv6 inside of mfsBSD run
+
+		        /root/enable_ipv6.sh
+
+		EOF
+	fi
+
 	if [ "$DAEMONIZE" = "YES" ]; then
 		echo "--- DEPENGUINME SCRIPT COMPLETE ---"
 	else
 		echo "Press CTRL-C to exit qemu"
 	fi
 )&
-
 keyscan_pid=$!
+
+if [ "$USE_IPV6" = "YES" ]; then
+	set +e
+	socat TCP6-LISTEN:1022,fork,bind="$MYPRIMARYIP" TCP4:127.0.0.1:1022 &
+	socat_pid=$!
+	set -e
+fi
+
 function finish {
 	set +e
+	if [ "$DAEMONIZE" != "YES" ]; then
+		kill $socat_pid >/dev/null 2>&1
+	fi
 	kill $keyscan_pid >/dev/null 2>&1
+	kill 0
 }
 trap finish EXIT
 
