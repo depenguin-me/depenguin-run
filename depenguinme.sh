@@ -3,7 +3,7 @@
 # depenguinme.sh
 
 # please bump version on change
-VERSION="v0.0.9"
+VERSION="v0.0.10"
 
 # v0.0.1  2022-07-28  bretton depenguin.me
 #  this is a proof of concept with parts to be further developed
@@ -20,17 +20,17 @@ VERSION="v0.0.9"
 #  add options
 #  some cleanup
 #
-# v0.0.5 2022-08-03 various artists
+# v0.0.5  2022-08-03 various artists
 #
-# v0.0.6 2022-08-10 bretton depenguin.me
+# v0.0.6  2022-08-10 bretton depenguin.me
 #  Bump qemu memory in options from 1GB to 8GB so tmpfs is large
 #  enough to download freebsd install files
 #  Add note about sudo to root before install
 #
-# v0.0.7 2022-08-11 grembo depenguin.me
+# v0.0.7  2022-08-11 grembo depenguin.me
 #  Only install dependencies if not found
 #
-# v0.0.8 2022-08-11 bretton depenguin.me
+# v0.0.8  2022-08-11 bretton depenguin.me
 #  Remove unnecessary exported variables
 #  migrate historical context info from script to changelog
 #   2022-07-28
@@ -46,8 +46,11 @@ VERSION="v0.0.9"
 #   - https://support.org.ua/Soft/vKVM/orig/uefi.tar.gz
 #   - https://depenguin.me/files/uefi.tar.gz
 #
-# v0.0.9 2022-08-13 bretton depenguin.me
+# v0.0.9  2022-08-13 bretton depenguin.me
 #  README updates, switch to unattended bsdinstall process over zfsinstall
+#
+# v0.0.10 2022-08-23 grembo depenguin.me
+#  Add IPv6 support, add dependency for kvm-ok, enable qemu monitor socket
 
 # this script must be run as root
 if [ "$EUID" -ne 0 ]; then
@@ -74,8 +77,13 @@ DEFAULT_QEMU_RAM=8G
 QEMU_RAM=$DEFAULT_QEMU_RAM
 REQUIRE_SSHKEY=YES
 DAEMONIZE=NO
+USE_IPV6=NO
 MFSBSDISO="https://depenguin.me/files/mfsbsd-13.1-RELEASE-amd64.iso"
-DEPS=("mkisofs:mkisofs" "qemu-system-x86_64:qemu-system-x86")  # binary:package
+DEPS=(
+  "mkisofs:mkisofs"
+  "qemu-system-x86_64:qemu-system-x86"
+  "kvm-ok:cpu-checker"
+  )  # binary:package
 
 usage() {
 	cat <<-EOF
@@ -138,6 +146,13 @@ while [ "$#" -gt 0 ]; do
 	shift
 done
 
+# determine network stack
+if ! ip route get 1 >/dev/null 2>&1; then
+	USE_IPV6="YES"
+	echo "No IPv4 public IP found, Using IPv6"
+	DEPS+=("socat:socat")
+fi
+
 # determine required packages
 install_pkgs=()
 for cmd_pkg in "${DEPS[@]}"; do
@@ -159,7 +174,12 @@ fi
 # vars, do not adjust unless you know what you're doing for this script
 QEMUBASE="/tmp/depenguinme"
 USENVME=0
-MYPRIMARYIP=$(ip route get 1 | awk '{print $(NF-2);exit}')
+if [ "$USE_IPV6" = "YES" ]; then
+	MYPRIMARYIP=$(ip -6 addr | grep -i global | awk '{ print $2 }' |\
+	  cut -d / -f1 | head -n1)
+else
+	MYPRIMARYIP=$(ip route get 1 2>/dev/null | awk '{print $(NF-2);exit}')
+fi
 MYVNC="127.0.0.1:1"
 MYVGA="std"   # could be qxl but not enabled for the static-qemu binary
 MYBIOS="/usr/share/ovmf/OVMF.fd"
@@ -295,6 +315,7 @@ qemu_args=(\
   -boot once=d \
   -vnc "${MYVNC}" \
   -D "${MYLOG}"\
+  -monitor "unix:/tmp/depenguinme/qemu-monitor-socket,server,nowait" \
 )
 
 if kvm-ok; then
@@ -345,17 +366,37 @@ fi
 
 	EOF
 
+	if [ "$USE_IPV6" = "YES" ]; then
+		cat <<-EOF
+		NOTE: You are using an IPv6 only system. To enable IPv6 inside of mfsBSD run
+
+		        /root/enable_ipv6.sh
+
+		EOF
+	fi
+
 	if [ "$DAEMONIZE" = "YES" ]; then
 		echo "--- DEPENGUINME SCRIPT COMPLETE ---"
 	else
 		echo "Press CTRL-C to exit qemu"
 	fi
 )&
-
 keyscan_pid=$!
+
+if [ "$USE_IPV6" = "YES" ]; then
+	set +e
+	socat TCP6-LISTEN:1022,fork,bind="$MYPRIMARYIP" TCP4:127.0.0.1:1022 &
+	socat_pid=$!
+	set -e
+fi
+
 function finish {
 	set +e
+	if [ "$DAEMONIZE" != "YES" ]; then
+		kill $socat_pid >/dev/null 2>&1
+	fi
 	kill $keyscan_pid >/dev/null 2>&1
+	kill 0
 }
 trap finish EXIT
 
