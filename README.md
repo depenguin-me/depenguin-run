@@ -40,7 +40,15 @@ Once logged in, you can `sudo su -` to root without a password. You cannot login
 If you have trouble with the ssh connection, wait 2 minutes and try again.
 
 ### 4. [Optional] Some UEFI systems may need edits to /etc/fstab
-Make sure to correct, or simply comment out, the /etc/fstab entry for `/boot/efi` before rebooting, as `bsdinstall` uses the device names visible in QEMU, which may differ. (see [this issue](https://github.com/depenguin-me/mfsbsd-13.1-script/issues/57#issuecomment-1280604676))
+Make sure to alter and comment out the /etc/fstab entry for `/boot/efi` before rebooting, as `bsdinstall` uses the device names visible in QEMU, which may differ. (see issues [10](https://github.com/depenguin-me/mfsbsd-13.1-script/issues/10#issuecomment-1225893163) and [57](https://github.com/depenguin-me/mfsbsd-13.1-script/issues/57#issuecomment-1280604676))
+
+Alter /etc/fstab to contain the correct partition name for the EFI partition (and comment it out):
+
+```
+# Device                Mountpoint      FStype  Options         Dump    Pass#
+#/dev/nvd0p1            /boot/efi       msdosfs rw              2       2
+/dev/mirror/swap.eli            none    swap    sw              0       0
+```
 
 ### 5. Install FreeBSD-13.1 using unattended bsdinstall
 Copy the file `depenguin_settings.sh.sample` to `depenguin_settings.sh` and edit for your server's details.
