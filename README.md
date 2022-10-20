@@ -39,7 +39,18 @@ Once logged in, you can `sudo su -` to root without a password. You cannot login
 
 If you have trouble with the ssh connection, wait 2 minutes and try again.
 
-### 4. Install FreeBSD-13.1 using unattended bsdinstall
+### 4. [Optional] Some UEFI systems may need edits to /etc/fstab
+Make sure to alter and comment out the /etc/fstab entry for `/boot/efi` before rebooting, as `bsdinstall` uses the device names visible in QEMU, which may differ. (see issues [10](https://github.com/depenguin-me/mfsbsd-13.1-script/issues/10#issuecomment-1225893163) and [57](https://github.com/depenguin-me/mfsbsd-13.1-script/issues/57#issuecomment-1280604676))
+
+Alter /etc/fstab to contain the correct partition name for the EFI partition (and comment it out):
+
+```
+# Device                Mountpoint      FStype  Options         Dump    Pass#
+#/dev/nvd0p1            /boot/efi       msdosfs rw              2       2
+/dev/mirror/swap.eli            none    swap    sw              0       0
+```
+
+### 5. Install FreeBSD-13.1 using unattended bsdinstall
 Copy the file `depenguin_settings.sh.sample` to `depenguin_settings.sh` and edit for your server's details.
 
     cp depenguin_settings.sh.sample depenguin_settings.sh
@@ -62,17 +73,17 @@ Configure your specifics, note that Hetzner DNS is in this example, you might ne
     conf_disktype="mirror" # or stripe for single disk
     run_installer="1" # set to 1 to enable installer 
 
-### 5. Run the depenguin bsdinstall script
+### 6. Run the depenguin bsdinstall script
 This script will update the `INSTALLERCONFIG` file used by `bsdinstall` with the values set above.
 
     ./depenguin_bsdinstall.sh 
 
 When complete the mfsbsd VM will shutdown automatically.
 
-### 6. Reboot
+### 7. Reboot
 Switch to the rescue console session and press `ctrl-c` to end qemu. Then type `reboot`. 
 
-### 7. Connect to your new server
+### 8. Connect to your new server
 After a few minutes to boot up, connect to your server via SSH:
 
     ssh YOUR-USER@ip-address
