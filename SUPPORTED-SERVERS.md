@@ -8,6 +8,7 @@ This is a list of confirmed working, or not working, dedicated server systems.
 
 ### Full installation success
 * Hetzner AX41 (v0.0.6, 2022-08-10)
+* Hetzner AX101 (v0.0.10, 2023-01-27)
 * OVH/Kimsufi KS-GAME-1 (v0.0.9, 2022-08-13)
 
 ### Full installation success (with extra steps)
