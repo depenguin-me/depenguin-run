@@ -390,13 +390,12 @@ if [ "$USE_IPV6" = "YES" ]; then
 	set -e
 fi
 
-# shellcheck disable=SC2086
 function finish {
 	set +e
 	if [ "$DAEMONIZE" != "YES" ]; then
-		kill $socat_pid >/dev/null 2>&1
+		kill "$socat_pid" >/dev/null 2>&1
 	fi
-	kill $keyscan_pid >/dev/null 2>&1
+	kill "$keyscan_pid" >/dev/null 2>&1
 	kill 0
 }
 trap finish EXIT
