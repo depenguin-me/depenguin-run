@@ -390,6 +390,7 @@ if [ "$USE_IPV6" = "YES" ]; then
 	set -e
 fi
 
+# shellcheck disable=SC2086
 function finish {
 	set +e
 	if [ "$DAEMONIZE" != "YES" ]; then

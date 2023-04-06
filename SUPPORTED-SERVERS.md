@@ -14,6 +14,7 @@ This is a list of confirmed working, or not working, dedicated server systems.
 ### Full installation success (with extra steps)
 * Hetzner AX51-NVMe (v.0.0.10, 2022-08-24, ipv6-only) [Issue-10](https://github.com/depenguin-me/mfsbsd-13.1-script/issues/10)
 * Hetzner EX43-NVMe (v.0.0.10, 2022-10-16, enable serial port, edit /etc/fstab) [Issue-57](https://github.com/depenguin-me/mfsbsd-13.1-script/issues/57)
+* Hetzner AX41-NVMe (v 0.0.10, 2023-04-06, change interface in /etc/rc.conf, uncomment `/boot/efi` line in `/etc/fstab`) [Issue-10](https://github.com/depenguin-me/mfsbsd-13.1-script/issues/10#issuecomment-1225893163)
 
 ## NOT WORKING
 * add details here
