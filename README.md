@@ -1,16 +1,18 @@
 # depenguin.me mfsbsd-13.1-script
-depenguin.me installer script for mfsBSD image to install FreeBSD 13.1 (with zfs-on-root) using qemu
+depenguin.me installer script for mfsBSD image to install FreeBSD 13.2 (with zfs-on-root) using qemu
 
 https://depenguin.me
 
-## Install FreeBSD-13.1 on a dedicated server from a Linux rescue environment
+Note: github repo name is still for 13.1, this needs fixing.
+
+## Install FreeBSD-13.2 on a dedicated server from a Linux rescue environment
 
 ### 1. Boot into rescue console
 
 You must be logged in as root. Prepare file path or URL of SSH public key.
 
 ### 2. Download and run installer script
-Boot your server into rescue mode, then download and run the custom [mfsBSD-based installer](https://github.com/depenguin-me/depenguin-builder) for FreeBSD-13.1, with root-on-ZFS.
+Boot your server into rescue mode, then download and run the custom [mfsBSD-based installer](https://github.com/depenguin-me/depenguin-builder) for FreeBSD-13.2, with root-on-ZFS.
 
     wget https://depenguin.me/run.sh && chmod +x run.sh && \
       ./run.sh [ -d ] [ -r ram ] [ -m <url of own mfsbsd image> ] authorized_keys ...
@@ -50,7 +52,7 @@ Alter /etc/fstab to contain the correct partition name for the EFI partition (an
 /dev/mirror/swap.eli            none    swap    sw              0       0
 ```
 
-### 5. Install FreeBSD-13.1 using unattended bsdinstall
+### 5. Install FreeBSD-13.2 using unattended bsdinstall
 Copy the file `depenguin_settings.sh.sample` to `depenguin_settings.sh` and edit for your server's details.
 
     cp depenguin_settings.sh.sample depenguin_settings.sh
