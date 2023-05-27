@@ -360,14 +360,14 @@ fi
 
 	Change to root to continue install with 'sudo su -'.
 
-    Option 1
-    Copy 'depenguin_settings.sh.sample' tp 'depenguin_settings.sh' and edit.
-    Then run 'depenguin_bsdinstall.sh'
+	Option 1
+	Copy 'depenguin_settings.sh.sample' tp 'depenguin_settings.sh' and edit.
+	Then run 'depenguin_bsdinstall.sh'
 
-    Option 2
-    Run 'bsdinstall -h' for install options
+	Option 2
+	Run 'bsdinstall -h' for install options
 
-    Option 3
+	Option 3
 	Run 'zfsinstall -h' for install options
 
 	Please report success or problems to us:
