@@ -3,7 +3,7 @@
 # depenguinme.sh
 
 # please bump version on change
-VERSION="v0.0.10"
+VERSION="v0.0.11"
 
 # v0.0.1  2022-07-28  bretton depenguin.me
 #  this is a proof of concept with parts to be further developed
@@ -51,6 +51,9 @@ VERSION="v0.0.10"
 #
 # v0.0.10 2022-08-23 grembo depenguin.me
 #  Add IPv6 support, add dependency for kvm-ok, enable qemu monitor socket
+#
+# v0.0.11 2023-05-27 bretton depenguin.me
+#  FreeBSD 13.2 release
 
 # this script must be run as root
 if [ "$EUID" -ne 0 ]; then
@@ -78,7 +81,7 @@ QEMU_RAM=$DEFAULT_QEMU_RAM
 REQUIRE_SSHKEY=YES
 DAEMONIZE=NO
 USE_IPV6=NO
-MFSBSDISO="https://depenguin.me/files/mfsbsd-13.1-RELEASE-amd64.iso"
+MFSBSDISO="https://depenguin.me/files/mfsbsd-13.2-RELEASE-amd64.iso"
 DEPS=(
   "mkisofs:mkisofs"
   "qemu-system-x86_64:qemu-system-x86"
@@ -357,7 +360,15 @@ fi
 
 	Change to root to continue install with 'sudo su -'.
 
-	Run 'zfsinstall -h' for install options, or provision with ansible scripts that cover installation.
+	Option 1
+	Copy 'depenguin_settings.sh.sample' tp 'depenguin_settings.sh' and edit.
+	Then run 'depenguin_bsdinstall.sh'
+
+	Option 2
+	Run 'bsdinstall -h' for install options
+
+	Option 3
+	Run 'zfsinstall -h' for install options
 
 	Please report success or problems to us:
 	https://github.com/depenguin-me/mfsbsd-13.1-script/issues
