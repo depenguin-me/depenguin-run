@@ -40,7 +40,7 @@ Once logged in, you can `sudo su -` to root without a password. You cannot login
 If you have trouble with the ssh connection, wait 2 minutes and try again.
 
 ### 4. [Optional] Some UEFI systems may need edits to /etc/fstab
-Make sure to alter and comment out the /etc/fstab entry for `/boot/efi` before rebooting, as `bsdinstall` uses the device names visible in QEMU, which may differ. (see issues [10](https://github.com/depenguin-me/mfsbsd-script/issues/10#issuecomment-1225893163) and [57](https://github.com/depenguin-me/mfsbsd-script/issues/57#issuecomment-1280604676))
+Make sure to alter and comment out the /etc/fstab entry for `/boot/efi` before rebooting, as `bsdinstall` uses the device names visible in QEMU, which may differ. (see issues [10](https://github.com/depenguin-me/depenguin-run/issues/10#issuecomment-1225893163) and [57](https://github.com/depenguin-me/depenguin-run/issues/57#issuecomment-1280604676))
 
 Alter /etc/fstab to contain the correct partition name for the EFI partition (and comment it out):
 
