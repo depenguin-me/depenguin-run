@@ -371,7 +371,7 @@ fi
 	Run 'zfsinstall -h' for install options
 
 	Please report success or problems to us:
-	https://github.com/depenguin-me/mfsbsd-13.1-script/issues
+	https://github.com/depenguin-me/mfsbsd-script/issues
 
 	$(print_version) on $(date "+%Y-%m-%d")
 
