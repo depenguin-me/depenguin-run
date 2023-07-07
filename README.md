@@ -50,6 +50,10 @@ Alter /etc/fstab to contain the correct partition name for the EFI partition (an
 /dev/mirror/swap.eli            none    swap    sw              0       0
 ```
 
+Alternatively, you can change the device name to use the gpt label by changing it to `/dev/gpt/efiboot0`:
+
+_Note: Since FreeBSD 13.2, bsdinstall uses the gpt label when creating /etc/fstab by default (see [this commit](https://cgit.freebsd.org/src/commit/?id=7919c76dbdd20161247d1bfb647110d87ca5ee0f)), so editing it manually is not required anymore._
+
 ### 5. Install FreeBSD-13.2 using unattended bsdinstall
 Copy the file `depenguin_settings.sh.sample` to `depenguin_settings.sh` and edit for your server's details.
 
