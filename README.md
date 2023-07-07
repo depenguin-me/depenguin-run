@@ -40,17 +40,7 @@ Once logged in, you can `sudo su -` to root without a password. You cannot login
 If you have trouble with the ssh connection, wait 2 minutes and try again.
 
 ### 4. [Optional] Some UEFI systems may need edits to /etc/fstab
-Make sure to alter and comment out the /etc/fstab entry for `/boot/efi` before rebooting, as `bsdinstall` uses the device names visible in QEMU, which may differ. (see issues [10](https://github.com/depenguin-me/depenguin-run/issues/10#issuecomment-1225893163) and [57](https://github.com/depenguin-me/depenguin-run/issues/57#issuecomment-1280604676))
-
-Alter /etc/fstab to contain the correct partition name for the EFI partition (and comment it out):
-
-```
-# Device                Mountpoint      FStype  Options         Dump    Pass#
-#/dev/nvd0p1            /boot/efi       msdosfs rw              2       2
-/dev/mirror/swap.eli            none    swap    sw              0       0
-```
-
-Alternatively, you can change the device name to use the gpt label by changing it to `/dev/gpt/efiboot0` (you can check the gpt label using `gpart show -l`):
+Before FreeBSD 13.2, `bsdinstall` added the efi boot partition to /etc/fstab using the device name visible in QEMU, which may differ (see issues [10](https://github.com/depenguin-me/depenguin-run/issues/10#issuecomment-1225893163) and [57](https://github.com/depenguin-me/depenguin-run/issues/57#issuecomment-1280604676)). This can be rectified by changing the device name of the efi partition to `/dev/gpt/efiboot0` (you can check the gpt label using `gpart show -l`):
 
 ```
 # Device                Mountpoint      FStype  Options         Dump    Pass#
@@ -60,7 +50,16 @@ Alternatively, you can change the device name to use the gpt label by changing i
 
 _Note: Since FreeBSD 13.2, bsdinstall uses the gpt label when creating /etc/fstab by default (see [this commit](https://cgit.freebsd.org/src/commit/?id=7919c76dbdd20161247d1bfb647110d87ca5ee0f)), so editing it manually is not required anymore._
 
-### 5. Install FreeBSD-13.2 using unattended bsdinstall
+### 5. [Optional] Disable serial ports
+
+FreeBSD hangs on some ASUS boards on boot if serial ports are enabled (see issue [10](https://github.com/depenguin-me/depenguin-run/issues/10)). To work around this problem, you can either disable serial ports in the BIOS or, more easily, disable them in /boot/loader.conf:
+
+```
+hint.uart.0.disabled="1"
+hint.uart.1.disabled="1"
+```
+
+### 6. Install FreeBSD-13.2 using unattended bsdinstall
 Copy the file `depenguin_settings.sh.sample` to `depenguin_settings.sh` and edit for your server's details.
 
     cp depenguin_settings.sh.sample depenguin_settings.sh
@@ -83,17 +82,17 @@ Configure your specifics, note that Hetzner DNS is in this example, you might ne
     conf_disktype="mirror" # or stripe for single disk
     run_installer="1" # set to 1 to enable installer 
 
-### 6. Run the depenguin bsdinstall script
+### 7. Run the depenguin bsdinstall script
 This script will update the `INSTALLERCONFIG` file used by `bsdinstall` with the values set above.
 
     ./depenguin_bsdinstall.sh 
 
 When complete the mfsbsd VM will shutdown automatically.
 
-### 7. Reboot
+### 8. Reboot
 Switch to the rescue console session and press `ctrl-c` to end qemu. Then type `reboot`. 
 
-### 8. Connect to your new server
+### 9. Connect to your new server
 After a few minutes to boot up, connect to your server via SSH:
 
     ssh YOUR-USER@ip-address
