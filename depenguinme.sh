@@ -3,7 +3,7 @@
 # depenguinme.sh
 
 # please bump version on change
-VERSION="v0.0.12"
+VERSION="v0.0.13"
 
 # v0.0.1  2022-07-28  bretton depenguin.me
 #  this is a proof of concept with parts to be further developed
@@ -58,6 +58,9 @@ VERSION="v0.0.12"
 # v0.0.12 2023-09-08 bretton depenguin.me
 #  Include package ovmf in DEPS
 #
+# v0.0.13 2023-12-12 bretton depenguin.me
+#  FreeBSD 14.0 release
+#
 
 # this script must be run as root
 if [ "$EUID" -ne 0 ]; then
@@ -85,7 +88,7 @@ QEMU_RAM=$DEFAULT_QEMU_RAM
 REQUIRE_SSHKEY=YES
 DAEMONIZE=NO
 USE_IPV6=NO
-MFSBSDISO="https://depenguin.me/files/mfsbsd-13.2-RELEASE-amd64.iso"
+MFSBSDISO="https://depenguin.me/files/mfsbsd-14.0-RELEASE-amd64.iso"
 DEPS=(
   "mkisofs:mkisofs"
   "qemu-system-x86_64:qemu-system-x86"
