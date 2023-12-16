@@ -3,7 +3,7 @@
 # depenguinme.sh
 
 # please bump version on change
-VERSION="v0.0.13"
+VERSION="v0.0.14"
 
 # v0.0.1  2022-07-28  bretton depenguin.me
 #  this is a proof of concept with parts to be further developed
@@ -60,6 +60,9 @@ VERSION="v0.0.13"
 #
 # v0.0.13 2023-12-12 bretton depenguin.me
 #  FreeBSD 14.0 release
+#
+# v0.0.14 2023-12-16 bretton depenguin.me
+#  Add function to get drives and automatically determine NVME or SD* drives
 #
 
 # this script must be run as root
@@ -243,67 +246,56 @@ fi
 # download mfsbsd image
 wget -qc -O "${MFSBSDFILE}" "${MFSBSDISO}" || exit_error "Could not download mfsbsd image"
 
-# check if sda & sdb
-echo "Searching sd[ab]"
+# check for drives
+echo "Searching sd[abcd] and nvme"
 set +e
-checkdiskone=$(lsblk |grep sda |head -1)
-notcdrom=$(lsblk |grep sdb |grep cdrom)
-if [ -z "${notcdrom}" ]; then
-	checkdisktwo=$(lsblk |grep sdb |head -1)
-else
-	checkdisktwo=""
-fi
-set -e
 
-# check for nvme, hetzner specific
-set +e
-echo "Searching nvme"
-mycheck=$(which nvme)
-if [ -n "${mycheck}" ]; then
-	existsnvme=$(nvme list | grep -c "/dev/nvme")
-	if [ "$existsnvme" -ge 2 ]; then
-		checknvmeone=$(lsblk |grep nvme0n1 |head -1)
-		checknvmetwo=$(lsblk |grep nvme1n1 |head -1)
+# function to check for all valid drive names and return just the name
+_get_all_valid_drives() {
+        # Count the number of NVMe drives
+        nvme_count=$(lsblk -no NAME,TYPE | grep -c '^nvme')
+	local "$nvme_count"
+
+        # If there are 1 or more NVMe drives, list only those
+        if [ "$nvme_count" -ge 1 ]; then
+                lsblk -no NAME,TYPE | awk '/^nvme/ && $2 == "disk" {print $1}'
 		USENVME=1
-	elif [ "$existsnvme" -eq 1 ]; then
-		checknvmeone=$(lsblk |grep nvme0n1 |head -1)
-		USENVME=1
-	elif [ -z "$existsnvme" ]; then
+        else
+        # Otherwise, list all sd* drives, excluding CD-ROM and USB drives
+                lsblk -no NAME,TYPE,TRAN | awk '$2 == "disk" && $3 != "usb" && $3 != "sr" && $1 ~ /^sd/ {print $1}'
 		USENVME=0
-	fi
-fi
-set -e
+        fi
+}
 
+# get the list of drives
+mydrives=$(_get_all_valid_drives)
+
+# read in drive names to an array
+IFS=$'\n' read -r -d '' -a drive_array <<< "$mydrives"
+
+# set empty disks array
 disks=()
 
-# start qemu-static with parameters
-if [ "$USENVME" -eq 0 ]; then
-	if [ -n "$checkdiskone" ] && [ -n "$checkdisktwo" ]; then
-		printf "\nNOTICE: using sda and sdb\n\n"
-		disks=(
-		  -drive "file=/dev/sda,format=raw" \
-		  -drive "file=/dev/sdb,format=raw" \
-		)
-	elif [ -n "$checkdiskone" ] && [ -z "$checkdisktwo" ]; then
-		printf "\nNOTICE: using sda only\n\n"
-		disks=(
-		  -drive "file=/dev/sda,format=raw" \
-		)
+# Function to add drives to the disks array
+add_drive_to_disks() {
+	drive=$1
+	local "$drive"
+	if [ -n "$drive" ]; then
+		disks+=(-drive "file=/dev/$drive,format=raw")
 	fi
-elif [ "$USENVME" -eq 1 ]; then
-	if [ -n "$checknvmeone" ] && [ -n "$checknvmetwo" ]; then
-		printf "\nNOTICE: using nvme0 and nvme1\n\n"
-		disks=(
-		  -drive "file=/dev/nvme0n1,format=raw" \
-		  -drive "file=/dev/nvme1n1,format=raw" \
-		)
-	elif [ -n "$checknvmeone" ] && [ -z "$checknvmetwo" ]; then
-		printf "\nNOTICE: using nvme0 only\n\n"
-		disks=(
-		  -drive "file=/dev/nvme0n1,format=raw" \
-		)
-	fi
+}
+
+# Check and add drives based on USENVME flag and drive availability
+if [ "$USENVME" -eq 1 ]; then
+	add_drive_to_disks "${drive_array[0]}"
+	add_drive_to_disks "${drive_array[1]}"
+else
+	for drive in "${drive_array[@]}"; do
+		add_drive_to_disks "$drive"
+	done
 fi
+
+set -e
 
 if [ ${#disks[@]} -eq 0 ]; then
 	exit_error "Could not find any disks"
@@ -423,3 +415,4 @@ echo "Starting qemu..."
 ${QEMUBIN} "${qemu_args[@]}"
 
 wait $keyscan_pid
+
