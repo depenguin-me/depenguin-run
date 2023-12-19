@@ -254,7 +254,6 @@ set +e
 _get_all_valid_drives() {
         # Count the number of NVMe drives
         nvme_count=$(lsblk -no NAME,TYPE | grep -c '^nvme')
-	local "$nvme_count"
 
         # If there are 1 or more NVMe drives, list only those
         if [ "$nvme_count" -ge 1 ]; then
@@ -263,41 +262,38 @@ _get_all_valid_drives() {
         else
         # Otherwise, list all sd* drives, excluding CD-ROM and USB drives
                 lsblk -no NAME,TYPE,TRAN | awk '$2 == "disk" && $3 != "usb" && $3 != "sr" && $1 ~ /^sd/ {print $1}'
-		USENVME=0
+		unset USENVME
         fi
 }
 
 # get the list of drives
 mydrives=$(_get_all_valid_drives)
 
-# read in drive names to an array
-IFS=$'\n' read -r -d '' -a drive_array <<< "$mydrives"
-
-# set empty disks array
-disks=()
+# set an empty string variable
+disks=""
 
 # Function to add drives to the disks array
 add_drive_to_disks() {
 	drive=$1
-	local "$drive"
 	if [ -n "$drive" ]; then
-		disks+=(-drive "file=/dev/$drive,format=raw")
+		disks="${disks}-drive \"file=/dev/$drive,format=raw\" "
 	fi
 }
 
 # Check and add drives based on USENVME flag and drive availability
-if [ "$USENVME" -eq 1 ]; then
-	add_drive_to_disks "${drive_array[0]}"
-	add_drive_to_disks "${drive_array[1]}"
+# Assumption is only 2 NVME drives, while there may be 2-4 SATA drives
+if [ -n "$USENVME" ]; then
+	add_drive_to_disks "$(echo "$mydrives" | sed -n 1p)"
+	add_drive_to_disks "$(echo "$mydrives" | sed -n 2p)"
 else
-	for drive in "${drive_array[@]}"; do
+	for drive in $mydrives; do
 		add_drive_to_disks "$drive"
 	done
 fi
 
 set -e
 
-if [ ${#disks[@]} -eq 0 ]; then
+if [[ ${#disks[@]} -eq 0 ]]; then
 	exit_error "Could not find any disks"
 fi
 
@@ -324,7 +320,6 @@ qemu_args=(\
 if kvm-ok; then
 	qemu_args+=(-enable-kvm -cpu host)
 fi
-
 
 if [ "$DAEMONIZE" = "YES" ]; then
 	qemu_args+=(-daemonize)
