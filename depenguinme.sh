@@ -187,7 +187,6 @@ fi
 
 # vars, do not adjust unless you know what you're doing for this script
 QEMUBASE="/tmp/depenguinme"
-USENVME=0
 if [ "$USE_IPV6" = "YES" ]; then
 	MYPRIMARYIP=$(ip -6 addr | grep -i global | awk '{ print $2 }' |\
 	  cut -d / -f1 | head -n1)
@@ -252,22 +251,27 @@ set +e
 
 # function to check for all valid drive names and return just the name
 _get_all_valid_drives() {
-        # Count the number of NVMe drives
-        nvme_count=$(lsblk -no NAME,TYPE | grep -c '^nvme')
+	# Capture the complete output of lsblk for debugging
+	lsblk_output=$(lsblk -no NAME,TYPE,TRAN)
+
+        # Count the number of NVMe drives (doesn't work with hetzner)
+        nvme_count=$(echo "$lsblk_output" | grep -c '^nvme')
 
         # If there are 1 or more NVMe drives, list only those
-        if [ "$nvme_count" -ge 1 ]; then
-                lsblk -no NAME,TYPE | awk '/^nvme/ && $2 == "disk" {print $1}'
-		USENVME=1
+        if [ "$nvme_count" -ne 0 ]; then
+		USENVME="$nvme_count"
+                echo "$lsblk_output" | awk '/^nvme/ && $2 == "disk" {print $1}'
         else
         # Otherwise, list all sd* drives, excluding CD-ROM and USB drives
-                lsblk -no NAME,TYPE,TRAN | awk '$2 == "disk" && $3 != "usb" && $3 != "sr" && $1 ~ /^sd/ {print $1}'
 		unset USENVME
+                echo "$lsblk_output" | awk '$2 == "disk" && $3 != "usb" && $3 != "sr" && $1 ~ /^sd/ {print $1}'
         fi
 }
 
 # get the list of drives
 mydrives=$(_get_all_valid_drives)
+
+echo "Detected drives: $mydrives"
 
 # set an empty string variable
 disks=""
@@ -276,24 +280,31 @@ disks=""
 add_drive_to_disks() {
 	drive=$1
 	if [ -n "$drive" ]; then
-		disks="${disks}-drive \"file=/dev/$drive,format=raw\" "
+		disks="${disks}-drive file=\"/dev/$drive,format=raw\" "
 	fi
 }
 
 # Check and add drives based on USENVME flag and drive availability
 # Assumption is only 2 NVME drives, while there may be 2-4 SATA drives
 if [ -n "$USENVME" ]; then
-	add_drive_to_disks "$(echo "$mydrives" | sed -n 1p)"
-	add_drive_to_disks "$(echo "$mydrives" | sed -n 2p)"
+	echo "Adding NVMe drives..."
+	for i in $(seq 1 "$USENVME"); do
+		# shellcheck disable=SC2086
+		add_drive_to_disks "$(echo $mydrives | sed -n "${i}"p)"
+	done
 else
+	echo "Adding SATA drives..."
 	for drive in $mydrives; do
+		echo "Adding SATA drive: $drive"
 		add_drive_to_disks "$drive"
 	done
 fi
 
 set -e
 
-if [[ ${#disks[@]} -eq 0 ]]; then
+echo "Configured disks: $disks"
+
+if [ -z "$disks" ]; then
 	exit_error "Could not find any disks"
 fi
 
@@ -308,7 +319,7 @@ qemu_args=(\
   -bios "${MYBIOS}" \
   -vga "${MYVGA}" \
   -k "${MYKEYMAP}" \
-  "${disks[@]}" \
+  "$disks" \
   -cdrom "${MFSBSDFILE}" \
   -drive file="${MYISOAUTH},media=cdrom" \
   -boot once=d \
