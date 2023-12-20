@@ -276,11 +276,11 @@ echo "Detected drives: $mydrives"
 # set an empty string variable
 disks=""
 
-# Function to add drives to the disks array
+# Function to add drives to the disks string
 add_drive_to_disks() {
 	drive=$1
 	if [ -n "$drive" ]; then
-		disks="${disks}-drive file=\"/dev/$drive,format=raw\" "
+		disks="${disks}-drive file=/dev/$drive,format=raw "
 	fi
 }
 
@@ -308,6 +308,9 @@ if [ -z "$disks" ]; then
 	exit_error "Could not find any disks"
 fi
 
+# read disks into array
+read -ra disks_array <<< "$disks"
+
 # arguments to qemu
 qemu_args=(\
   -net nic \
@@ -319,7 +322,7 @@ qemu_args=(\
   -bios "${MYBIOS}" \
   -vga "${MYVGA}" \
   -k "${MYKEYMAP}" \
-  "$disks" \
+  "${disks_array[@]}" \
   -cdrom "${MFSBSDFILE}" \
   -drive file="${MYISOAUTH},media=cdrom" \
   -boot once=d \
