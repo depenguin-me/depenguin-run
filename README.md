@@ -68,7 +68,7 @@ Configure your specifics, note that Hetzner DNS is in this example, you might ne
     conf_username="myusername"
     conf_pubkeyurl="http://url.host/keys.txt"
     conf_disks="ada0 ada1" # or ada0 | or ada0 ada1 ada2 ada3 | or nvme0n1 | or nvme0n1 nvme1n1
-    conf_disktype="mirror" # or stripe for single disk, or raid10 or raidz1 for four disk systems
+    conf_disktype="mirror" # or stripe for single disk, or raid10, or raidz1, for four disk systems
     run_installer="1" # set to 1 to enable installer 
 
 ### 6. Run the depenguin bsdinstall script
@@ -88,8 +88,8 @@ After a few minutes to boot up, connect to your server via SSH:
 
 Check DNS is available and then perform initial system configuration such as:
 
-    freebsd-update fetch
-    freebsd-update install
+    freebsd-update --not-running-from-cron fetch
+    freebsd-update --not-running-from-cron install
 
 End
 
