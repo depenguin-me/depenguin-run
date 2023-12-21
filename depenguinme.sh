@@ -285,7 +285,7 @@ add_drive_to_disks() {
 }
 
 # Check and add drives based on USENVME flag and drive availability
-# Assumption is only 2 NVME drives, while there may be 2-4 SATA drives
+# This could be simplied into a single statement matching the else? Legacy carry over.
 if [ -n "$USENVME" ]; then
 	echo "Adding NVMe drives..."
 	for i in $(seq 1 "$USENVME"); do
