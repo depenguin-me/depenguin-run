@@ -324,9 +324,9 @@ qemu_args=(\
   -k "${MYKEYMAP}" \
   "${disks_array[@]}" \
   -device "virtio-scsi-pci,id=scsi0" \
-  -drive file="${MFSBSDFILE},media=cdrom,if=none,id=cdrom" \
+  -drive "file=${MFSBSDFILE},media=cdrom,if=none,id=cdrom" \
   -device "scsi-cd,drive=cdrom" \
-  -drive file="${MYISOAUTH},media=cdrom,if=none,id=myisoauth" \
+  -drive "file=${MYISOAUTH},media=cdrom,if=none,id=myisoauth" \
   -device "scsi-cd,drive=myisoauth" \
   -boot once=d \
   -vnc "${MYVNC}" \
