@@ -57,7 +57,7 @@ Copy the file `depenguin_settings.sh.sample` to `depenguin_settings.sh` and edit
 Configure your specifics, note that Hetzner DNS is in this example, you might need other servers listed.
 
     conf_hostname="depenguintest"
-    conf_interface="igb0"
+    conf_interface="CHANGEME-igb0-or-em0-etc"
     conf_ipv4="1.2.3.4"
     conf_ipv6="abcd:xxxx:yyyy:zzzz::p"
     conf_gateway="6.7.8.9"
