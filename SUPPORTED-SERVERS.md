@@ -15,6 +15,8 @@ This is a list of confirmed working, or not working, dedicated server systems.
 * Hetzner AX51-NVMe (v.0.0.10, 2022-08-24, ipv6-only) [Issue-10](https://github.com/depenguin-me/depenguin-run/issues/10)
 * Hetzner EX43-NVMe (v.0.0.10, 2022-10-16, disable serial ports) [Issue-57](https://github.com/depenguin-me/depenguin-run/issues/57)
 * Hetzner AX41-NVMe (v 0.0.10, 2023-04-06, change interface in /etc/rc.conf) [Issue-10](https://github.com/depenguin-me/depenguin-run/issues/10#issuecomment-1225893163)
+* Hetzner SB Intel Xeon E3-1275V6 (v 0.0.14, 2023-12-21, four disks used for mirror array)
+* Hetzner SB Intel Xeon E5-1650V3 (v 0.0.14, 2024-01-02, two HDD, two SSD)
 
 ## NOT WORKING
 * add details here
