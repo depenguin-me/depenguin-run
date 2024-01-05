@@ -250,53 +250,32 @@ wget -qc -O "${MFSBSDFILE}" "${MFSBSDISO}" || exit_error "Could not download mfs
 
 # check for drives
 echo "Searching sd[abcd] and nvme"
-
 set +e
 
 # Capture the complete output of lsblk for debugging
 lsblk_output=$(lsblk -no NAME,TYPE,TRAN)
 
-# Count the number of NVMe drives (doesn't work with hetzner)
-NVME_COUNT=$(echo "$lsblk_output" | grep -c '^nvme')
+# Get nvme drives first
+drive_type="NVMe"
+detected_drives=$(echo "$lsblk_output" | awk '/^nvme/ && $2 == "disk" {print $1}')
 
-# If there are 1 or more NVMe drives, list only those
-if [ "$NVME_COUNT" -gt 0 ]; then
-	mydrives=$(echo "$lsblk_output" | awk '/^nvme/ && $2 == "disk" {print $1}')
-else
-	# Otherwise, list all sd* drives, excluding CD-ROM and USB drives
-	mydrives=$(echo "$lsblk_output" | \
+# If no nvme drives found, detect all list all sd* drives, excluding CD-ROM and USB drives
+if [ -z "$detected_drives" ]; then
+	drive_type="SATA"
+	detected_drives=$(echo "$lsblk_output" | \
 	    awk '$2 == "disk" && $3 != "usb" && $3 != "sr" && $1 ~ /^sd/ {print $1}')
 fi
 
 set -e
-
-echo "Detected drives: $mydrives"
+echo "Detected drives: $detected_drives"
 
 # array holding list of disks to pass to qemu
 disks=()
 
-# Function to add drives to the disks string
-add_drive_to_disks() {
-	drive=$1
-	if [ -n "$drive" ]; then
-		disks+=( "-drive" "file=/dev/$drive,format=raw" )
-	fi
-}
-
-# Check and add drives based on NVME_COUNT flag and drive availability
-# This could be simplified into a single statement matching the else? Legacy carry over.
-if [ "$NVME_COUNT" -gt 0 ]; then
-	echo "Adding NVMe drives..."
-	for i in $(seq 1 "$NVME_COUNT"); do
-		add_drive_to_disks "$(echo "$mydrives" | sed -n "${i}"p)"
-	done
-else
-	echo "Adding SATA drives..."
-	for drive in $mydrives; do
-		echo "Adding SATA drive: $drive"
-		add_drive_to_disks "$drive"
-	done
-fi
+for drive in $detected_drives; do
+	echo "Adding $drive_type drive: $drive"
+	disks+=( "-drive" "file=/dev/$drive,format=raw" )
+done
 
 echo "Configured disks: ${disks[*]}"
 
