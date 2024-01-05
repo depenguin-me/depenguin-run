@@ -64,6 +64,9 @@ VERSION="v0.0.14"
 # v0.0.14 2023-12-16 bretton depenguin.me
 #  Add function to get drives and automatically determine NVME or SD* drives
 #
+# v0.0.15 2024-01-05 grembo depenguin.me
+#  Minor fixes around drive detection
+#
 
 # this script must be run as root
 if [ "$EUID" -ne 0 ]; then
@@ -249,67 +252,36 @@ wget -qc -O "${MFSBSDFILE}" "${MFSBSDISO}" || exit_error "Could not download mfs
 echo "Searching sd[abcd] and nvme"
 set +e
 
-# function to check for all valid drive names and return just the name
-_get_all_valid_drives() {
-	# Capture the complete output of lsblk for debugging
-	lsblk_output=$(lsblk -no NAME,TYPE,TRAN)
+# Capture the complete output of lsblk for debugging
+lsblk_output=$(lsblk -no NAME,TYPE,TRAN)
 
-        # Count the number of NVMe drives (doesn't work with hetzner)
-        nvme_count=$(echo "$lsblk_output" | grep -c '^nvme')
+# Get nvme drives first
+drive_type="NVMe"
+detected_drives=$(echo "$lsblk_output" | awk '/^nvme/ && $2 == "disk" {print $1}')
 
-        # If there are 1 or more NVMe drives, list only those
-        if [ "$nvme_count" -ne 0 ]; then
-		USENVME="$nvme_count"
-                echo "$lsblk_output" | awk '/^nvme/ && $2 == "disk" {print $1}'
-        else
-        # Otherwise, list all sd* drives, excluding CD-ROM and USB drives
-		unset USENVME
-                echo "$lsblk_output" | awk '$2 == "disk" && $3 != "usb" && $3 != "sr" && $1 ~ /^sd/ {print $1}'
-        fi
-}
-
-# get the list of drives
-mydrives=$(_get_all_valid_drives)
-
-echo "Detected drives: $mydrives"
-
-# set an empty string variable
-disks=""
-
-# Function to add drives to the disks string
-add_drive_to_disks() {
-	drive=$1
-	if [ -n "$drive" ]; then
-		disks="${disks}-drive file=/dev/$drive,format=raw "
-	fi
-}
-
-# Check and add drives based on USENVME flag and drive availability
-# This could be simplified into a single statement matching the else? Legacy carry over.
-if [ -n "$USENVME" ]; then
-	echo "Adding NVMe drives..."
-	for i in $(seq 1 "$USENVME"); do
-		# shellcheck disable=SC2086
-		add_drive_to_disks "$(echo $mydrives | sed -n "${i}"p)"
-	done
-else
-	echo "Adding SATA drives..."
-	for drive in $mydrives; do
-		echo "Adding SATA drive: $drive"
-		add_drive_to_disks "$drive"
-	done
+# If no nvme drives found, detect all list all sd* drives, excluding CD-ROM and USB drives
+if [ -z "$detected_drives" ]; then
+	drive_type="SATA"
+	detected_drives=$(echo "$lsblk_output" | \
+	    awk '$2 == "disk" && $3 != "usb" && $3 != "sr" && $1 ~ /^sd/ {print $1}')
 fi
 
 set -e
+echo "Detected drives: $detected_drives"
 
-echo "Configured disks: $disks"
+# array holding list of disks to pass to qemu
+disks=()
 
-if [ -z "$disks" ]; then
+for drive in $detected_drives; do
+	echo "Adding $drive_type drive: $drive"
+	disks+=( "-drive" "file=/dev/$drive,format=raw" )
+done
+
+echo "Configured disks: ${disks[*]}"
+
+if [ ${#disks[@]} -eq 0 ]; then
 	exit_error "Could not find any disks"
 fi
-
-# read disks into array
-read -ra disks_array <<< "$disks"
 
 # arguments to qemu
 qemu_args=(\
@@ -322,7 +294,7 @@ qemu_args=(\
   -bios "${MYBIOS}" \
   -vga "${MYVGA}" \
   -k "${MYKEYMAP}" \
-  "${disks_array[@]}" \
+  "${disks[@]}" \
   -device "virtio-scsi-pci,id=scsi0" \
   -drive "file=${MFSBSDFILE},media=cdrom,if=none,id=cdrom" \
   -device "scsi-cd,drive=cdrom" \
@@ -393,7 +365,7 @@ fi
 		cat <<-EOF
 		NOTE: You are using an IPv6 only system. To enable IPv6 inside of mfsBSD run
 
-		        /root/enable_ipv6.sh
+		    /root/enable_ipv6.sh
 
 		EOF
 	fi
