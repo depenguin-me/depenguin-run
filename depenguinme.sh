@@ -64,6 +64,9 @@ VERSION="v0.0.14"
 # v0.0.14 2023-12-16 bretton depenguin.me
 #  Add function to get drives and automatically determine NVME or SD* drives
 #
+# v0.0.15 2024-01-05 grembo depenguin.me
+#  Minor fixes around drive detection
+#
 
 # this script must be run as root
 if [ "$EUID" -ne 0 ]; then
@@ -247,29 +250,23 @@ wget -qc -O "${MFSBSDFILE}" "${MFSBSDISO}" || exit_error "Could not download mfs
 
 # check for drives
 echo "Searching sd[abcd] and nvme"
+
 set +e
 
-# function to check for all valid drive names and return just the name
-_get_all_valid_drives() {
-	# Capture the complete output of lsblk for debugging
-	lsblk_output=$(lsblk -no NAME,TYPE,TRAN)
+# Capture the complete output of lsblk for debugging
+lsblk_output=$(lsblk -no NAME,TYPE,TRAN)
 
-	# Count the number of NVMe drives (doesn't work with hetzner)
-	nvme_count=$(echo "$lsblk_output" | grep -c '^nvme')
+# Count the number of NVMe drives (doesn't work with hetzner)
+NVME_COUNT=$(echo "$lsblk_output" | grep -c '^nvme')
 
-	# If there are 1 or more NVMe drives, list only those
-	if [ "$nvme_count" -ne 0 ]; then
-		USENVME="$nvme_count"
-		echo "$lsblk_output" | awk '/^nvme/ && $2 == "disk" {print $1}'
-	else
+# If there are 1 or more NVMe drives, list only those
+if [ "$NVME_COUNT" -gt 0 ]; then
+	mydrives=$(echo "$lsblk_output" | awk '/^nvme/ && $2 == "disk" {print $1}')
+else
 	# Otherwise, list all sd* drives, excluding CD-ROM and USB drives
-		unset USENVME
-		echo "$lsblk_output" | awk '$2 == "disk" && $3 != "usb" && $3 != "sr" && $1 ~ /^sd/ {print $1}'
-	fi
-}
-
-# get the list of drives
-mydrives=$(_get_all_valid_drives)
+	mydrives=$(echo "$lsblk_output" | \
+	    awk '$2 == "disk" && $3 != "usb" && $3 != "sr" && $1 ~ /^sd/ {print $1}')
+fi
 
 set -e
 
@@ -286,11 +283,11 @@ add_drive_to_disks() {
 	fi
 }
 
-# Check and add drives based on USENVME flag and drive availability
+# Check and add drives based on NVME_COUNT flag and drive availability
 # This could be simplified into a single statement matching the else? Legacy carry over.
-if [ -n "$USENVME" ]; then
+if [ "$NVME_COUNT" -gt 0 ]; then
 	echo "Adding NVMe drives..."
-	for i in $(seq 1 "$USENVME"); do
+	for i in $(seq 1 "$NVME_COUNT"); do
 		add_drive_to_disks "$(echo "$mydrives" | sed -n "${i}"p)"
 	done
 else
