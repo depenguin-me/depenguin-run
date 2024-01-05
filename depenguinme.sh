@@ -254,33 +254,35 @@ _get_all_valid_drives() {
 	# Capture the complete output of lsblk for debugging
 	lsblk_output=$(lsblk -no NAME,TYPE,TRAN)
 
-        # Count the number of NVMe drives (doesn't work with hetzner)
-        nvme_count=$(echo "$lsblk_output" | grep -c '^nvme')
+	# Count the number of NVMe drives (doesn't work with hetzner)
+	nvme_count=$(echo "$lsblk_output" | grep -c '^nvme')
 
-        # If there are 1 or more NVMe drives, list only those
-        if [ "$nvme_count" -ne 0 ]; then
+	# If there are 1 or more NVMe drives, list only those
+	if [ "$nvme_count" -ne 0 ]; then
 		USENVME="$nvme_count"
-                echo "$lsblk_output" | awk '/^nvme/ && $2 == "disk" {print $1}'
-        else
-        # Otherwise, list all sd* drives, excluding CD-ROM and USB drives
+		echo "$lsblk_output" | awk '/^nvme/ && $2 == "disk" {print $1}'
+	else
+	# Otherwise, list all sd* drives, excluding CD-ROM and USB drives
 		unset USENVME
-                echo "$lsblk_output" | awk '$2 == "disk" && $3 != "usb" && $3 != "sr" && $1 ~ /^sd/ {print $1}'
-        fi
+		echo "$lsblk_output" | awk '$2 == "disk" && $3 != "usb" && $3 != "sr" && $1 ~ /^sd/ {print $1}'
+	fi
 }
 
 # get the list of drives
 mydrives=$(_get_all_valid_drives)
 
+set -e
+
 echo "Detected drives: $mydrives"
 
-# set an empty string variable
-disks=""
+# array holding list of disks to pass to qemu
+disks=()
 
 # Function to add drives to the disks string
 add_drive_to_disks() {
 	drive=$1
 	if [ -n "$drive" ]; then
-		disks="${disks}-drive file=/dev/$drive,format=raw "
+		disks+=( "-drive" "file=/dev/$drive,format=raw" )
 	fi
 }
 
@@ -289,8 +291,7 @@ add_drive_to_disks() {
 if [ -n "$USENVME" ]; then
 	echo "Adding NVMe drives..."
 	for i in $(seq 1 "$USENVME"); do
-		# shellcheck disable=SC2086
-		add_drive_to_disks "$(echo $mydrives | sed -n "${i}"p)"
+		add_drive_to_disks "$(echo "$mydrives" | sed -n "${i}"p)"
 	done
 else
 	echo "Adding SATA drives..."
@@ -300,16 +301,11 @@ else
 	done
 fi
 
-set -e
+echo "Configured disks: ${disks[*]}"
 
-echo "Configured disks: $disks"
-
-if [ -z "$disks" ]; then
+if [ ${#disks[@]} -eq 0 ]; then
 	exit_error "Could not find any disks"
 fi
-
-# read disks into array
-read -ra disks_array <<< "$disks"
 
 # arguments to qemu
 qemu_args=(\
@@ -322,7 +318,7 @@ qemu_args=(\
   -bios "${MYBIOS}" \
   -vga "${MYVGA}" \
   -k "${MYKEYMAP}" \
-  "${disks_array[@]}" \
+  "${disks[@]}" \
   -device "virtio-scsi-pci,id=scsi0" \
   -drive "file=${MFSBSDFILE},media=cdrom,if=none,id=cdrom" \
   -device "scsi-cd,drive=cdrom" \
@@ -393,7 +389,7 @@ fi
 		cat <<-EOF
 		NOTE: You are using an IPv6 only system. To enable IPv6 inside of mfsBSD run
 
-		        /root/enable_ipv6.sh
+		    /root/enable_ipv6.sh
 
 		EOF
 	fi
