@@ -5,30 +5,26 @@
 # please bump version on change
 VERSION="v0.0.15"
 
-# v0.0.1  2022-07-28  bretton depenguin.me
-#  this is a proof of concept with parts to be further developed
+# v0.0.15 2024-01-05 grembo depenguin.me
+#  Minor fixes around drive detection
 #
-# v0.0.2  2022-07-30  bretton depenguin.me
-#  retrieve and insert ssh key
+# v0.0.14 2023-12-16 bretton depenguin.me
+#  Add function to get drives and automatically determine NVME or SD* drives
 #
-# v0.0.3  2022-07-31  bretton depenguin.me
-#  use uefi.bin as bios to enable support of >2TB disks
-#  use hardened mfsbsd image and copy in imported keys
+# v0.0.13 2023-12-12 bretton depenguin.me
+#  FreeBSD 14.0 release
 #
-# v0.0.4  2022-08-01  grembo depenguin.me
-#  use more official packages
-#  add options
-#  some cleanup
+# v0.0.12 2023-09-08 bretton depenguin.me
+#  Include package ovmf in DEPS
 #
-# v0.0.5  2022-08-03 various artists
+# v0.0.11 2023-05-27 bretton depenguin.me
+#  FreeBSD 13.2 release
 #
-# v0.0.6  2022-08-10 bretton depenguin.me
-#  Bump qemu memory in options from 1GB to 8GB so tmpfs is large
-#  enough to download freebsd install files
-#  Add note about sudo to root before install
+# v0.0.10 2022-08-23 grembo depenguin.me
+#  Add IPv6 support, add dependency for kvm-ok, enable qemu monitor socket
 #
-# v0.0.7  2022-08-11 grembo depenguin.me
-#  Only install dependencies if not found
+# v0.0.9  2022-08-13 bretton depenguin.me
+#  README updates, switch to unattended bsdinstall process over zfsinstall
 #
 # v0.0.8  2022-08-11 bretton depenguin.me
 #  Remove unnecessary exported variables
@@ -46,26 +42,30 @@ VERSION="v0.0.15"
 #   - https://support.org.ua/Soft/vKVM/orig/uefi.tar.gz
 #   - https://depenguin.me/files/uefi.tar.gz
 #
-# v0.0.9  2022-08-13 bretton depenguin.me
-#  README updates, switch to unattended bsdinstall process over zfsinstall
+# v0.0.7  2022-08-11 grembo depenguin.me
+#  Only install dependencies if not found
 #
-# v0.0.10 2022-08-23 grembo depenguin.me
-#  Add IPv6 support, add dependency for kvm-ok, enable qemu monitor socket
+# v0.0.6  2022-08-10 bretton depenguin.me
+#  Bump qemu memory in options from 1GB to 8GB so tmpfs is large
+#  enough to download freebsd install files
+#  Add note about sudo to root before install
 #
-# v0.0.11 2023-05-27 bretton depenguin.me
-#  FreeBSD 13.2 release
+# v0.0.5  2022-08-03 various artists
 #
-# v0.0.12 2023-09-08 bretton depenguin.me
-#  Include package ovmf in DEPS
+# v0.0.4  2022-08-01  grembo depenguin.me
+#  use more official packages
+#  add options
+#  some cleanup
 #
-# v0.0.13 2023-12-12 bretton depenguin.me
-#  FreeBSD 14.0 release
+# v0.0.3  2022-07-31  bretton depenguin.me
+#  use uefi.bin as bios to enable support of >2TB disks
+#  use hardened mfsbsd image and copy in imported keys
 #
-# v0.0.14 2023-12-16 bretton depenguin.me
-#  Add function to get drives and automatically determine NVME or SD* drives
+# v0.0.2  2022-07-30  bretton depenguin.me
+#  retrieve and insert ssh key
 #
-# v0.0.15 2024-01-05 grembo depenguin.me
-#  Minor fixes around drive detection
+# v0.0.1  2022-07-28  bretton depenguin.me
+#  this is a proof of concept with parts to be further developed
 #
 
 # this script must be run as root
