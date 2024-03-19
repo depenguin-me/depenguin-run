@@ -96,7 +96,7 @@ DAEMONIZE=NO
 USE_IPV6=NO
 MFSBSDISO="https://depenguin.me/files/mfsbsd-14.0-RELEASE-amd64.iso"
 
-# usage
+# display command usage
 usage() {
 	cat <<-EOF
 	Usage: $(basename "${BASH_SOURCE[0]}") [-hvd] [-m url] [-r ram] authorized_keys ...
@@ -158,6 +158,12 @@ while [ "$#" -gt 0 ]; do
 	shift
 done
 
+DEPS=(
+  "qemu-system-x86_64:qemu-system-x86"
+  "kvm-ok:cpu-checker"
+  "ovmf:ovmf"
+)  # binary:package
+
 # determine network stack
 if ! ip route get 1 >/dev/null 2>&1; then
 	USE_IPV6="YES"
@@ -169,19 +175,9 @@ fi
 distro=$(/usr/bin/lsb_release -i | awk '{print $3}')
 
 if [[ "$distro" == "Debian" ]]; then
-	DEPS=(
-	  "genisoimage:genisoimage"
-	  "qemu-system-x86_64:qemu-system-x86"
-	  "kvm-ok:cpu-checker"
-	  "ovmf:ovmf"
-	)  # binary:package
+	DEPS+=("genisoimage:genisoimage")
 else
-	DEPS=(
-	  "mkisofs:mkisofs"
-	  "qemu-system-x86_64:qemu-system-x86"
-	  "kvm-ok:cpu-checker"
-	  "ovmf:ovmf"
-	) # binary:package
+	DEPS+=("mkisofs:mkisofs")
 fi
 
 # determine required packages
