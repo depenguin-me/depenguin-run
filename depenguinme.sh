@@ -5,6 +5,10 @@
 # please bump version on change
 VERSION="v0.0.16"
 
+# v0.0.16 2024-03-19 bretton depenguin.me
+#  Adjust dependencies for Debian rescue environments, OVH needs genisoimage
+#  instead of mkisofs
+#
 # v0.0.15 2024-01-05 grembo depenguin.me
 #  Minor fixes around drive detection
 #
