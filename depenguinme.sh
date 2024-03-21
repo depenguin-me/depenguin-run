@@ -3,8 +3,12 @@
 # depenguinme.sh
 
 # please bump version on change
-VERSION="v0.0.15"
+VERSION="v0.0.16"
 
+# v0.0.16 2024-03-19 bretton depenguin.me
+#  Adjust dependencies for Debian rescue environments, OVH needs genisoimage
+#  instead of mkisofs
+#
 # v0.0.15 2024-01-05 grembo depenguin.me
 #  Minor fixes around drive detection
 #
@@ -95,13 +99,8 @@ REQUIRE_SSHKEY=YES
 DAEMONIZE=NO
 USE_IPV6=NO
 MFSBSDISO="https://depenguin.me/files/mfsbsd-14.0-RELEASE-amd64.iso"
-DEPS=(
-  "mkisofs:mkisofs"
-  "qemu-system-x86_64:qemu-system-x86"
-  "kvm-ok:cpu-checker"
-  "ovmf:ovmf"
-  )  # binary:package
 
+# display command usage
 usage() {
 	cat <<-EOF
 	Usage: $(basename "${BASH_SOURCE[0]}") [-hvd] [-m url] [-r ram] authorized_keys ...
@@ -163,11 +162,26 @@ while [ "$#" -gt 0 ]; do
 	shift
 done
 
+DEPS=(
+  "qemu-system-x86_64:qemu-system-x86"
+  "kvm-ok:cpu-checker"
+  "ovmf:ovmf"
+)  # binary:package
+
 # determine network stack
 if ! ip route get 1 >/dev/null 2>&1; then
 	USE_IPV6="YES"
 	echo "No IPv4 public IP found, Using IPv6"
 	DEPS+=("socat:socat")
+fi
+
+# Get the ID of the distribution
+distro=$(/usr/bin/lsb_release -i | awk '{print $3}')
+
+if [[ "$distro" == "Debian" ]]; then
+	DEPS+=("genisoimage:genisoimage")
+else
+	DEPS+=("mkisofs:mkisofs")
 fi
 
 # determine required packages
@@ -345,7 +359,7 @@ fi
 	Change to root to continue install with 'sudo su -'.
 
 	Option 1
-	Copy 'depenguin_settings.sh.sample' tp 'depenguin_settings.sh' and edit.
+	Copy 'depenguin_settings.sh.sample' to 'depenguin_settings.sh' and edit.
 	Then run 'depenguin_bsdinstall.sh'
 
 	Option 2
