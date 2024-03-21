@@ -21,6 +21,7 @@ This is a list of confirmed working, or not working, dedicated server systems.
 * Hetzner SB Intel Xeon E5-1650V3 (v 0.0.14, 2024-01-02, two HDD, two SSD)
 * online.net Start-3-L (v0.0.15, 2024-02-13, change NIC in rc.conf from em0 to igb0)
 * Xneelo Truserv Intel Xeon E3-1230V6 (v 0.0.14, 2024-01-04, four disks, local ipv6) [Issue-12](https://github.com/depenguin-me/depenguin-run/issues/12#issuecomment-1877658404)
+* OVH/Kimsufi KS-16 (v0.0.16, 2024-03-21, three disks, use raidz1 in unattended installer) [Issue-41](https://github.com/depenguin-me/depenguin-run/issues/41#issuecomment-2011833543)
 
 ## NOT WORKING
 * add details here
