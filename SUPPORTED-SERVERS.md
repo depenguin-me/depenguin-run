@@ -22,6 +22,7 @@ This is a list of confirmed working, or not working, dedicated server systems.
 * online.net Start-3-L (v0.0.15, 2024-02-13, change NIC in rc.conf from em0 to igb0)
 * Xneelo Truserv Intel Xeon E3-1230V6 (v 0.0.14, 2024-01-04, four disks, local ipv6) [Issue-12](https://github.com/depenguin-me/depenguin-run/issues/12#issuecomment-1877658404)
 * OVH/Kimsufi KS-16 (v0.0.16, 2024-03-21, three disks, use raidz1 in unattended installer) [Issue-41](https://github.com/depenguin-me/depenguin-run/issues/41#issuecomment-2011833543)
+* OVH Advance-2 Gen 2 (v0.0.16, 2024-04-26, four disks in raidz2, changed NIC in rc.conf from em0 to ixl0)
 
 ## NOT WORKING
 * add details here
