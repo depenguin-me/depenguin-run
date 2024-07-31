@@ -3,8 +3,11 @@
 # depenguinme.sh
 
 # please bump version on change
-VERSION="v0.0.16"
+VERSION="v0.0.17"
 
+# v0.0.17 2024-07-31 fh netzkommune.de
+#  Add HPE-signing-keys
+#
 # v0.0.16 2024-03-19 bretton depenguin.me
 #  Adjust dependencies for Debian rescue environments, OVH needs genisoimage
 #  instead of mkisofs
