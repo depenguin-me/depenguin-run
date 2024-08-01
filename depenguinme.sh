@@ -184,10 +184,10 @@ distro=$(/usr/bin/lsb_release -i | awk '{print $3}')
 if [[ "$distro" == "Debian" ]]; then
         DEPS+=("genisoimage:genisoimage")
         # download hpe signing keys
-        curl http://downloads.linux.hpe.com/SDR/hpPublicKey1024.pub       | sudo apt-key add -
-        curl http://downloads.linux.hpe.com/SDR/hpPublicKey2048.pub       | sudo apt-key add -
-        curl http://downloads.linux.hpe.com/SDR/hpPublicKey2048_key1.pub  | sudo apt-key add -
-        curl http://downloads.linux.hpe.com/SDR/hpePublicKey2048_key1.pub | sudo apt-key add -
+        curl http://downloads.linux.hpe.com/SDR/hpPublicKey1024.pub       | apt-key add -
+        curl http://downloads.linux.hpe.com/SDR/hpPublicKey2048.pub       | apt-key add -
+        curl http://downloads.linux.hpe.com/SDR/hpPublicKey2048_key1.pub  | apt-key add -
+        curl http://downloads.linux.hpe.com/SDR/hpePublicKey2048_key1.pub | apt-key add -
 else
 	DEPS+=("mkisofs:mkisofs")
 fi
