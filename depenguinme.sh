@@ -188,6 +188,7 @@ if [[ "$distro" == "Debian" ]]; then
 	cat <<-"EOH" | apt-key add -
 	-----BEGIN PGP PUBLIC KEY BLOCK-----
 	Version: GnuPG v1.4.12 (GNU/Linux)
+	
 	mQENBFZp0LkBCACXajRw3b4x7G7dulNYj0hUID4BtVFq/MjEb6PHckTxGxZDoQRX
 	RK54tiTFA9wq3b4P3yEFnOjbjRoI0d7Ls67FADugFO+cDCtsV9yuDlaYP/U/h2nX
 	N0R4AdYbsVd5yr6xr+GAy66Hmx5jFH3kbC+zJpOcI0tU9hcyU7gjbxu6KQ1ypI2Q
