@@ -3,8 +3,11 @@
 # depenguinme.sh
 
 # please bump version on change
-VERSION="v0.0.17"
+VERSION="v0.0.18"
 
+# v0.0.18 2024-10-02 bretton depenguin.me
+#  Default to 14.1 ISO
+#
 # v0.0.17 2024-07-31 fh netzkommune.de
 #  Add HPE-signing-keys
 #
@@ -101,7 +104,7 @@ QEMU_RAM=$DEFAULT_QEMU_RAM
 REQUIRE_SSHKEY=YES
 DAEMONIZE=NO
 USE_IPV6=NO
-MFSBSDISO="https://depenguin.me/files/mfsbsd-14.0-RELEASE-amd64.iso"
+MFSBSDISO="https://depenguin.me/files/mfsbsd-14.1-RELEASE-amd64.iso"
 
 # display command usage
 usage() {
