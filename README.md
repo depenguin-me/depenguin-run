@@ -1,16 +1,17 @@
 # depenguin.me mfsbsd-script
-depenguin.me installer script for mfsBSD image to install FreeBSD 14.2 (with zfs-on-root) using qemu
+depenguin.me installer script for mfsBSD image to install FreeBSD 14.3 (with zfs-on-root) using qemu
 
 https://depenguin.me
 
-## Install FreeBSD-14.2 on a dedicated server from a Linux rescue environment
+## Install FreeBSD-14.3 on a dedicated server from a Linux rescue environment
 
 ### 1. Boot into rescue console
 
 You must be logged in as root. Prepare file path or URL of SSH public key.
 
 ### 2. Download and run installer script
-Boot your server into rescue mode, then download and run the custom [mfsBSD-based installer](https://github.com/depenguin-me/depenguin-builder) for FreeBSD-14.2, with root-on-ZFS.
+
+Boot your server into rescue mode, then download and run the custom [mfsBSD-based installer](https://github.com/depenguin-me/depenguin-builder) for FreeBSD-14.3, with root-on-ZFS.
 
     wget https://depenguin.me/run.sh && chmod +x run.sh && \
       ./run.sh [ -d ] [ -r ram ] [ -m <url of own mfsbsd image> ] authorized_keys ...
@@ -31,6 +32,7 @@ Example invocations:
     ./run.sh /tmp/my_public_key
 
 ### 3. Connect via SSH
+
 Wait until the script reports SSH to be available (takes a few minutes), then connect:
 
     ssh -i /path/to/privkey -p 1022 mfsbsd@your-host-ip
@@ -48,13 +50,18 @@ hint.uart.0.disabled="1"
 hint.uart.1.disabled="1"
 ```
 
-### 5. Install FreeBSD-14.2 using unattended bsdinstall
+### 5. Install with unattended bsdinstall script, or use the manual `bsdinstall` process
+
+We recommend the unattended process for most setups.
+
+#### 5a. Install FreeBSD-14.3 using unattended bsdinstall
+
 Copy the file `depenguin_settings.sh.sample` to `depenguin_settings.sh` and edit for your server's details.
 
     cp depenguin_settings.sh.sample depenguin_settings.sh
     nano depenguin_settings.sh
 
-Configure your specifics, note that Hetzner DNS is in this example, you might need other servers listed.
+Configure your specific settings in applicable fields. Take note that Hetzner DNS is used in this example, you might need other servers listed for different hosts.
 
     conf_hostname="depenguintest"
     conf_interface="CHANGEME-igb0-or-em0-etc"
@@ -71,20 +78,52 @@ Configure your specifics, note that Hetzner DNS is in this example, you might ne
     conf_disktype="mirror" # or stripe for single disk, or raid10, or raidz1, for four disk systems
     run_installer="1" # set to 1 to enable installer 
 
-### 6. Run the depenguin bsdinstall script
-This script will update the `INSTALLERCONFIG` file used by `bsdinstall` with the values set above.
+Then run the unattended installer script as follows. 
 
     ./depenguin_bsdinstall.sh 
 
-When complete the mfsbsd VM will shutdown automatically.
+This script will update the `INSTALLERCONFIG` file used by `bsdinstall` with the values set above.
 
-### 7. Reboot
-Switch to the rescue console session and press `ctrl-c` to end qemu. Then type `reboot`. 
+When complete the mfsbsd VM will shutdown automatically. Proceed to step 6. 
 
-### 8. Connect to your new server
+#### 5b. Install with `bsdinstall`
+
+This is the manual approach, which requires choosing options from menus. You want this if you have custom needs, such as encrypted swap or partitions.
+
+Run `bsdinstall -h` to see options. 
+
+Start install process by running `bsdinstall`.
+
+Before reboot, take note of the following manual network configuration required for Hetzner servers.
+
+The "canonical" setup we suggest using involves renaming the interface to `untrusted` and configuring `/etc/rc.conf` as follows, replacing IP addresses with your specific values (see issue [94](https://github.com/depenguin-me/depenguin-run/issues/94)):
+
+    ifconfig_em0_name="untrusted"
+    ifconfig_untrusted="up"
+    ifconfig_untrusted_ipv6="up"
+    ifconfig_untrusted_aliases="inet 1.2.3.4/32 inet6 2a01:444:111:222::2/64"
+    static_routes="gateway default"
+    route_gateway="-host 1.2.3.1 -interface untrusted"
+    route_default="default 1.2.3.1"
+    ipv6_defaultrouter="fe80::1%untrusted"
+
+You may need to manually shutdown the `mfsbsd` instance. Proceed to step 6.
+
+### 6. Reboot
+
+Switch to the rescue console session.
+
+Qemu will exit automatically after a few seconds if you used the unattended install process. You can type `reboot` to exit the rescue console and wait for your installed system to boot.
+
+Alternatively, press `ctrl-c` to end qemu. Then type `reboot`.
+
+### 7. Connect to your new server
+
 After a few minutes to boot up, connect to your server via SSH:
 
     ssh YOUR-USER@ip-address
+
+> Make sure to remove any rescue/mfsbsd ssh keys stored in `.ssh/known_hosts` before connecting.
 
 Check DNS is available and then perform initial system configuration such as:
 
@@ -100,6 +139,8 @@ You can pass in the `-m <url of own mfsbsd image>` using one of the following UR
 * https://depenguin.me/files/mfsbsd-13.1-RELEASE-amd64.iso
 * https://depenguin.me/files/mfsbsd-13.2-RELEASE-amd64.iso
 * https://depenguin.me/files/mfsbsd-13.4-RELEASE-amd64.iso
+* https://depenguin.me/files/mfsbsd-13.5-RELEASE-amd64.iso
 * https://depenguin.me/files/mfsbsd-14.0-RELEASE-amd64.iso
 * https://depenguin.me/files/mfsbsd-14.1-RELEASE-amd64.iso
 * https://depenguin.me/files/mfsbsd-14.2-RELEASE-amd64.iso
+* https://depenguin.me/files/mfsbsd-14.3-RELEASE-amd64.iso
