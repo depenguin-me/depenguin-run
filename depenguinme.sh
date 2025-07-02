@@ -3,8 +3,11 @@
 # depenguinme.sh
 
 # please bump version on change
-VERSION="v0.0.19"
+VERSION="v0.0.20"
 
+# v0.0.20 2025-06-22 bretton depenguin.me
+#  Default to 14.3 ISO
+#
 # v0.0.19 2024-12-30 bretton depenguin.me
 #  Default to 14.2 ISO
 #
@@ -107,7 +110,7 @@ QEMU_RAM=$DEFAULT_QEMU_RAM
 REQUIRE_SSHKEY=YES
 DAEMONIZE=NO
 USE_IPV6=NO
-MFSBSDISO="https://depenguin.me/files/mfsbsd-14.2-RELEASE-amd64.iso"
+MFSBSDISO="https://depenguin.me/files/mfsbsd-14.3-RELEASE-amd64.iso"
 
 # display command usage
 usage() {
