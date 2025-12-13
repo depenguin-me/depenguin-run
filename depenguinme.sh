@@ -3,8 +3,13 @@
 # depenguinme.sh
 
 # please bump version on change
-VERSION="v0.0.19"
+VERSION="v0.0.20"
 
+#
+# v0.0.20 2025-12-13 bretton depenguin.me
+#  Default to 15.0 ISO, traditional install, not pkgbase
+#  Add option to disable KVM acceleration in run.sh parameters (EX44 servers)
+#
 # v0.0.19 2024-12-30 bretton depenguin.me
 #  Default to 14.2 ISO
 #
@@ -106,17 +111,19 @@ DEFAULT_QEMU_RAM=8G
 QEMU_RAM=$DEFAULT_QEMU_RAM
 REQUIRE_SSHKEY=YES
 DAEMONIZE=NO
+NOKVMACCEL=NO
 USE_IPV6=NO
-MFSBSDISO="https://depenguin.me/files/mfsbsd-14.2-RELEASE-amd64.iso"
+MFSBSDISO="https://depenguin.me/files/mfsbsd-15.0-RELEASE-amd64.iso"
 
 # display command usage
 usage() {
 	cat <<-EOF
-	Usage: $(basename "${BASH_SOURCE[0]}") [-hvd] [-m url] [-r ram] authorized_keys ...
+	Usage: $(basename "${BASH_SOURCE[0]}") [-hvdf] [-m url] [-r ram] authorized_keys ...
 
 	  -h Show help
 	  -v Show version
 	  -d daemonize
+	  -f force disable QEMU KVM acceleration (e.g. EX44 hosts)
 	  -m : URL of mfsbsd image (defaults to image on https://depenguin.me)
 	       When specifying an non-default mfsbsd image, authorized_keys becomes
 	       optional.
@@ -129,7 +136,7 @@ usage() {
 	EOF
 }
 
-while getopts "hvdm:r:" flags; do
+while getopts "hvdfm:r:" flags; do
 	case "${flags}" in
 	h)
 		usage
@@ -141,6 +148,9 @@ while getopts "hvdm:r:" flags; do
 		;;
 	d)
 		DAEMONIZE=YES
+		;;
+	f)
+		NOKVMACCEL=YES
 		;;
 	m)
 		MFSBSDISO="${OPTARG}"
@@ -353,7 +363,12 @@ qemu_args=(\
 )
 
 if kvm-ok; then
-	qemu_args+=(-enable-kvm -cpu host)
+	if [ "$NOKVMACCEL" = "YES" ]; then
+		echo "KVM is available, but you requested to disable QEMU KVM acceleration"
+	else
+		echo "KVM is available, enabling QEMU KVM acceleration"
+		qemu_args+=(-enable-kvm -cpu host)
+	fi
 fi
 
 if [ "$DAEMONIZE" = "YES" ]; then
