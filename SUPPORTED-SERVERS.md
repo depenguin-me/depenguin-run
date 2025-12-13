@@ -8,6 +8,7 @@ This is a list of confirmed working, or not working, dedicated server systems.
 
 ### Full installation success
 * Hetzner AX41 (v0.0.6, 2022-08-10)
+* Hetzner AX42 (v0.0.20, 2025-07-10)
 * Hetzner AX101 (v0.0.10, 2023-01-27)
 * Hetzner AX162-R (v0.0.16, 2024-07-12)
 * Hetzner AX102 (v0.0.19, 2025-04-10)
