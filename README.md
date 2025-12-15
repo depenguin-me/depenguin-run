@@ -1,9 +1,9 @@
 # depenguin.me mfsbsd-script
-depenguin.me installer script for mfsBSD image to install FreeBSD 14.3 (with zfs-on-root) using qemu
+depenguin.me installer script for mfsBSD image to install FreeBSD 15.0 (traditional install not pkgbase, with zfs-on-root) using qemu
 
 https://depenguin.me
 
-## Install FreeBSD-14.3 on a dedicated server from a Linux rescue environment
+## Install FreeBSD-15.0 traditional install on a dedicated server from a Linux rescue environment
 
 ### 1. Boot into rescue console
 
@@ -11,12 +11,14 @@ You must be logged in as root. Prepare file path or URL of SSH public key.
 
 ### 2. Download and run installer script
 
-Boot your server into rescue mode, then download and run the custom [mfsBSD-based installer](https://github.com/depenguin-me/depenguin-builder) for FreeBSD-14.3, with root-on-ZFS.
+Boot your server into rescue mode, then download and run the custom [mfsBSD-based installer](https://github.com/depenguin-me/depenguin-builder) for FreeBSD-15.0, traditional install (non-pkgbase) with root-on-ZFS.
 
     wget https://depenguin.me/run.sh && chmod +x run.sh && \
-      ./run.sh [ -d ] [ -r ram ] [ -m <url of own mfsbsd image> ] authorized_keys ...
+      ./run.sh [ -d ] [ -f ] [ -r ram ] [ -m <url of own mfsbsd image> ] authorized_keys ...
 
 The "-d" parameter will send the qemu process to the background.
+
+The "-f" parameter will disable QEMU KVM acceleration for hosts where this is a problem, such as Hetzner EX44.
 
 The "-r" parameter allows setting qemu memory for low memory systems, default is `8G` for `8GiB`.
 
@@ -54,7 +56,7 @@ hint.uart.1.disabled="1"
 
 We recommend the unattended process for most setups.
 
-#### 5a. Install FreeBSD-14.3 using unattended bsdinstall
+### 5a. Install FreeBSD-15.0 using unattended bsdinstall
 
 Copy the file `depenguin_settings.sh.sample` to `depenguin_settings.sh` and edit for your server's details.
 
@@ -76,7 +78,10 @@ Configure your specific settings in applicable fields. Take note that Hetzner DN
     conf_pubkeyurl="http://url.host/keys.txt"
     conf_disks="ada0 ada1" # or ada0 | or ada0 ada1 ada2 ada3 | or nvme0n1 | or nvme0n1 nvme1n1
     conf_disktype="mirror" # or stripe for single disk, or raid10, or raidz1, for four disk systems
-    run_installer="1" # set to 1 to enable installer 
+    run_installer="1" # set to 1 to enable installer
+    tweak_ax102="0" # only enable for Hetzner AX102 servers
+
+If installing on a Hetzner AX102 server, configure `tweak_ax102=1` to perform a additional steps to allow successful booting after installation (see issue [100](https://github.com/depenguin-me/depenguin-run/issues/100)).
 
 Then run the unattended installer script as follows. 
 
@@ -144,3 +149,4 @@ You can pass in the `-m <url of own mfsbsd image>` using one of the following UR
 * https://depenguin.me/files/mfsbsd-14.1-RELEASE-amd64.iso
 * https://depenguin.me/files/mfsbsd-14.2-RELEASE-amd64.iso
 * https://depenguin.me/files/mfsbsd-14.3-RELEASE-amd64.iso
+* https://depenguin.me/files/mfsbsd-15.0-RELEASE-amd64.iso
